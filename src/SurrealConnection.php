@@ -265,7 +265,7 @@ class SurrealConnection extends Connection
             $bindings[$key] = match (true) {
                 $value instanceof DateTimeInterface => $value->format($grammar->getDateFormat()),
                 $value instanceof DateInterval => $value->format($grammar->getFormattedInterval($value)),
-                default => $key,
+                default => $value,
             };
         }
 
