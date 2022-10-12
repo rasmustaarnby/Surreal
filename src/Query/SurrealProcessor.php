@@ -5,7 +5,9 @@ namespace Laragear\Surreal\Query;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\Processors\Processor;
 use Illuminate\Support\Collection;
+use RuntimeException;
 use function data_get;
+use function is_numeric;
 
 class SurrealProcessor extends Processor
 {
@@ -27,5 +29,30 @@ class SurrealProcessor extends Processor
         return $results->map(static function (array $response): array {
             return $response['result'];
         })->flatten(1);
+    }
+
+    /**
+     * Process an  "insert get ID" query.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  string  $sql
+     * @param  array  $values
+     * @param  string|null  $sequence
+     * @return int
+     */
+    public function processInsertGetId(Builder $query, $sql, $values, $sequence = null)
+    {
+        // Since an insert operation will return all values, we can return the IDs exclusively.
+        // We can use the help of the SELECT processer to get the results we're interested in.
+        $inserted = $this->processSelect($query, $query->getConnection()->insert($sql, $values));
+
+        $id = data_get($inserted->first(), 'id');
+
+        if (null === $id) {
+            throw new RuntimeException('SurrealDB statement did not return an ID.');
+        }
+
+        // All the ids are `table:id` notation, which are strings.
+        return data_get($inserted->first(), 'id');
     }
 }
