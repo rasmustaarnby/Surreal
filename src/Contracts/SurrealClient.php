@@ -9,6 +9,21 @@ use Laragear\Surreal\JsonRpc\QueryMessage;
 interface SurrealClient
 {
     /**
+     * Sets the configuration for the SurrealDB Client.
+     *
+     * @param  array  $config
+     * @return $this
+     */
+    public function configure(array $config): static;
+
+    /**
+     * Starts the client.
+     *
+     * @return void
+     */
+    public function start(): void;
+
+    /**
      * Stops the client.
      *
      * @return void

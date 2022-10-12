@@ -6,33 +6,98 @@ use Amp\ByteStream\StreamException;
 use Amp\Http\Client\HttpException;
 use Amp\Websocket\Client\WebsocketConnectException;
 use Amp\Websocket\Client\WebsocketConnection;
-use Amp\Websocket\Client\WebsocketHandshake as Handshake;
+use Amp\Websocket\Client\WebsocketHandshake;
 use Amp\Websocket\ClosedException;
-use Amp\Websocket\WebsocketMessage as Message;
+use Amp\Websocket\WebsocketMessage;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\LazyCollection;
+use JetBrains\PhpStorm\ArrayShape;
 use JsonException;
 use Laragear\Surreal\Contracts\SurrealClient;
 use Laragear\Surreal\Exceptions\FailedResponseError;
 use Laragear\Surreal\Exceptions\NotConnectedException;
 use Laragear\Surreal\JsonRpc\QueryMessage;
 use RuntimeException;
+use Throwable;
 use function Amp\Websocket\Client\connect;
 use function base64_encode;
 use function json_decode;
+use function retry;
 use const JSON_THROW_ON_ERROR;
 
 class WebsocketClient implements SurrealClient
 {
     /**
-     * Create a new WebSocket client.
+     * The configuration to use for connecting.
      *
-     * @param  \Amp\Websocket\Client\WebsocketConnection|null  $connection
+     * @var array{username:string,password:string,ns:string,db:string,driver:string,host:string,port:string,database:string}
      */
-    public function __construct(protected ?WebSocketConnection $connection)
+    #[ArrayShape([
+        "username" => "string", "password" => "string", "ns" => "string", "db" => "string", "driver" => "string",
+        "host" => "string", "port" => "string", "database" => "string",
+    ])]
+    protected array $config = [];
+
+    /**
+     * The persistent connection being used, if any.
+     *
+     * @var \Amp\Websocket\Client\WebsocketConnection|null
+     */
+    protected ?WebsocketConnection $connection = null;
+
+    /**
+     * Sets the configuration for the WebSocket Client.
+     *
+     * @param  array{username:string,password:string,ns:string,db:string,driver:string,host:string,port:string,database:string}  $config
+     * @return $this
+     */
+    public function configure(
+        #[ArrayShape([
+            "username" => "string", "password" => "string", "ns" => "string", "db" => "string", "driver" => "string",
+            "host" => "string", "port" => "string", "database" => "string",
+        ])]
+        array $config
+    ): static {
+        $this->config = $config;
+
+        return $this;
+    }
+
+    /**
+     * Starts the client.
+     *
+     * @return void
+     * @throws \Laragear\Surreal\Exceptions\NotConnectedException
+     */
+    public function start(): void
     {
-        //
+        if (!$this->connection) {
+            $this->connect();
+        }
+    }
+
+    /**
+     * Connect to the WebSocket JSON-RPC endpoint.
+     *
+     * @return void
+     * @throws \Laragear\Surreal\Exceptions\NotConnectedException
+     */
+    protected function connect(): void
+    {
+        $handshake = new WebsocketHandshake(static::buildUrl($this->config), [
+            'Authorization' => 'Basic '.base64_encode($this->config['username'].':'.$this->config['password']),
+            'NS' => $this->config['ns'],
+            'DB' => $this->config['db'],
+        ]);
+
+        try {
+            $this->connection = retry(3, static function () use ($handshake): WebsocketConnection {
+                return connect($handshake);
+            });
+        } catch (Throwable $e) {
+            throw new NotConnectedException('Failed to connect to SurrealDB.', $e->getCode(), $e);
+        }
     }
 
     /**
@@ -42,8 +107,9 @@ class WebsocketClient implements SurrealClient
      */
     public function stop(): void
     {
-        if (! $this->connection->isClosed()) {
+        if (!$this->connection->isClosed()) {
             $this->connection->close();
+            $this->connection = null;
         }
     }
 
@@ -54,7 +120,7 @@ class WebsocketClient implements SurrealClient
      */
     public function isRunning(): bool
     {
-        return ! $this->connection->isClosed();
+        return !$this->connection->isClosed();
     }
 
     /**
@@ -95,7 +161,7 @@ class WebsocketClient implements SurrealClient
      * @return \Illuminate\Support\Collection
      * @throws \Laragear\Surreal\Exceptions\FailedResponseError
      */
-    protected function getResults(Message $message): Collection
+    protected function getResults(WebsocketMessage $message): Collection
     {
         if (!$message->isReadable()) {
             throw new FailedResponseError('The SurrealDB message is not readable.');
@@ -115,7 +181,9 @@ class WebsocketClient implements SurrealClient
 
         // If the response from the server is an error, throw a failed response.
         if (isset($serverMessage['error'])) {
-            throw new FailedResponseError($serverMessage['error']['message'], $serverMessage['error']['code']);
+            throw new FailedResponseError(
+                Arr::get($serverMessage, 'error.message'), Arr::get($serverMessage, 'error.code')
+            );
         }
 
         // Return the first result.
@@ -181,7 +249,7 @@ class WebsocketClient implements SurrealClient
      */
     public static function fromConfig(array $config): static
     {
-        $handshake = new Handshake(static::buildUrl($config), [
+        $handshake = new WebsocketHandshake(static::buildUrl($config), [
             'Authorization' => 'Basic '.base64_encode($config['username'].':'.$config['password']),
             'NS' => $config['ns'],
             'DB' => $config['db'],

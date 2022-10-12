@@ -14,10 +14,11 @@ class SurrealServiceProvider extends ServiceProvider
      * Register any application services.
      *
      * @return void
-     * @throws \Laragear\Surreal\Exceptions\NotConnectedException
+     * @throws \Illuminate\Contracts\Container\BindingResolutionException
      */
     public function register(): void
     {
+        $this->registerClient();
         $this->registerDatabaseDriver();
         $this->registerClientShutdown();
         $this->registerBuilderMacros();
@@ -25,18 +26,32 @@ class SurrealServiceProvider extends ServiceProvider
     }
 
     /**
+     * Register the SurrealDB Client.
+     *
+     * @return void
+     */
+    protected function registerClient(): void
+    {
+        $this->app->singleton('surreal.client', static function (): Contracts\SurrealClient {
+            return new Tcp\WebsocketClient();
+        });
+        $this->app->alias('surreal.client', Contracts\SurrealClient::class);
+    }
+
+    /**
      * Registers the SurrealDB database driver.
      *
      * @return void
-     * @throws \Laragear\Surreal\Exceptions\NotConnectedException
+     * @throws \Illuminate\Contracts\Container\BindingResolutionException
      */
     protected function registerDatabaseDriver(): void
     {
         $this->callAfterResolving('db', static function (DatabaseManager $manager, Container $app): void {
             $manager->extend('surreal', static function (array $config) use ($app): SurrealConnection {
-                $client = Tcp\WebsocketClient::fromConfig($config);
+                /** @var \Laragear\Surreal\Contracts\SurrealClient $client */
+                $client = $app->make(Contracts\SurrealClient::class);
 
-                $app->instance('surreal.client', $client);
+                $client->configure($config)->start();
 
                 return new SurrealConnection($client, $config['database'], $config['prefix'] ?? '', $config);
             });
