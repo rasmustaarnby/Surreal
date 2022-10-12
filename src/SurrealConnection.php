@@ -7,15 +7,9 @@ use DateInterval;
 use DateTimeInterface;
 use Exception;
 use Illuminate\Database\Connection;
-use Illuminate\Database\Query\Grammars\Grammar;
-use Illuminate\Database\Query\Processors\Processor;
 use Illuminate\Database\QueryException;
-use Illuminate\Database\Schema\Grammars\Grammar as SchemaGrammar;
-use Illuminate\Database\Schema\SchemaState;
 use Illuminate\Filesystem\Filesystem;
 use Laragear\Surreal\JsonRpc\QueryMessage;
-use Laragear\Surreal\Query\SurrealGrammar;
-use Laragear\Surreal\Query\SurrealProcessor;
 use RuntimeException;
 use function microtime;
 
@@ -76,9 +70,9 @@ class SurrealConnection extends Connection
      *
      * @return \Illuminate\Database\Query\Grammars\Grammar
      */
-    protected function getDefaultQueryGrammar(): Grammar
+    protected function getDefaultQueryGrammar()
     {
-        return new SurrealGrammar();
+        return new Query\SurrealGrammar();
     }
 
     /**
@@ -86,9 +80,23 @@ class SurrealConnection extends Connection
      *
      * @return \Illuminate\Database\Query\Processors\Processor
      */
-    protected function getDefaultPostProcessor(): Processor
+    protected function getDefaultPostProcessor()
     {
-        return new SurrealProcessor();
+        return new Query\SurrealProcessor();
+    }
+
+    /**
+     * Get a schema builder instance for the connection.
+     *
+     * @return \Illuminate\Database\Schema\Builder
+     */
+    public function getSchemaBuilder()
+    {
+        if (null === $this->schemaGrammar) {
+            $this->useDefaultSchemaGrammar();
+        }
+
+        return new Schema\SurrealSchemaBuilder($this);
     }
 
     /**
@@ -96,9 +104,9 @@ class SurrealConnection extends Connection
      *
      * @return \Illuminate\Database\Schema\Grammars\Grammar
      */
-    protected function getDefaultSchemaGrammar(): SchemaGrammar
+    protected function getDefaultSchemaGrammar()
     {
-        return new Schema\SurrealGrammar();
+        return new Schema\SurrealSchemaGrammar();
     }
 
     /**
@@ -108,7 +116,7 @@ class SurrealConnection extends Connection
      * @param  callable|null  $processFactory
      * @return \Illuminate\Database\Schema\SchemaState
      */
-    public function getSchemaState(Filesystem $files = null, callable $processFactory = null): SchemaState
+    public function getSchemaState(Filesystem $files = null, callable $processFactory = null)
     {
         return new Schema\SurrealSchemaState($this, $files, $processFactory);
     }
