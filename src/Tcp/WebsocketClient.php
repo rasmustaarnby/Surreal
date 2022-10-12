@@ -186,7 +186,6 @@ class WebsocketClient implements SurrealClient
             );
         }
 
-        // Return the first result.
         return new Collection(Arr::get($serverMessage, 'result', []));
     }
 
