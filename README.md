@@ -303,12 +303,12 @@ SurrealDB doesn't support DISTINCT clauses, mainly becase GROUP BY offers the sa
 
 ### Insert
 
-A noticeable change from the default `insert()` method of the builder is the ability to return the whole record instead of just a boolean. You can use the table name as the ID.
+A noticeable change from the default `insert()` method of the builder is that it will always return the whole record final state instead of just a boolean.
 
 ```php
 use Illuminate\Support\Facades\DB;
 
-$article = DB::table('article:trip-to-italy')->insert([
+$article = DB::id('article:trip-to-italy')->insert([
    'title' => 'My vacations in Italy',
    'body' => '...',
    'tags' => null,
@@ -325,6 +325,8 @@ $article = DB::table('article:trip-to-italy')->insert([
     "user": null
 }
 ```
+
+> Inserts don't support changing the [return](#returns-planned).
 
 ### Create (planned)
 
