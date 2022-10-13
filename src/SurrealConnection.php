@@ -9,6 +9,7 @@ use Exception;
 use Illuminate\Database\Connection;
 use Illuminate\Database\QueryException;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Collection;
 use Laragear\Surreal\JsonRpc\QueryMessage;
 use RuntimeException;
 use function microtime;
@@ -127,22 +128,11 @@ class SurrealConnection extends Connection
      * @param  string  $query
      * @param  array  $bindings
      * @param  bool  $useReadPdo
-     * @return array
+     * @return \Illuminate\Support\Collection
      */
     public function select($query, $bindings = [], $useReadPdo = true)
     {
-        return $this->run($query, $bindings, function ($query, $bindings) {
-            if ($this->pretending()) {
-                return [];
-            }
-
-            // For select statements, we'll simply execute the query and return an array
-            // of the database result set. Each element in the array will be a single
-            // row from the database table, and will either be an array or objects.
-            return $this->client->send(
-                $this->prepared(QueryMessage::queryWithUlid($query, $this->prepareBindings($bindings)))
-            );
-        });
+        return $this->statement($query, $bindings);
     }
 
     /**
@@ -156,7 +146,7 @@ class SurrealConnection extends Connection
     {
         return $this->run($query, $bindings, function ($query, $bindings) {
             if ($this->pretending()) {
-                return [];
+                return new Collection();
             }
 
             return $this->client->send(
@@ -215,30 +205,30 @@ class SurrealConnection extends Connection
     {
         return $this->run($query, $bindings, function ($query, $bindings) {
             if ($this->pretending()) {
-                return [0];
+                return 0;
             }
 
-            $result = $this->client->send(
+            $affected = $this->client->send(
                 $this->prepared(QueryMessage::queryWithUlid($query, $this->prepareBindings($bindings)))
-            );
+            )->count();
 
-            $this->recordsHaveBeenModified($result->isNotEmpty());
+            $this->recordsHaveBeenModified((bool) $affected);
 
-            return $result;
+            return $affected;
         });
     }
 
     /**
-     * Run a raw, unprepared query against the PDO connection.
+     * Run a raw, unprepared query against the database.
      *
      * @param  string  $query
-     * @return bool
+     * @return \Illuminate\Support\Collection
      */
     public function unprepared($query)
     {
         return $this->run($query, [], function ($query) {
             if ($this->pretending()) {
-                return true;
+                return new Collection();
             }
 
             $result = $this->client->send(
@@ -264,7 +254,7 @@ class SurrealConnection extends Connection
         foreach ($bindings as $key => $value) {
             $bindings[$key] = match (true) {
                 $value instanceof DateTimeInterface => $value->format($grammar->getDateFormat()),
-                $value instanceof DateInterval => $value->format($grammar->getFormattedInterval($value)),
+                $value instanceof DateInterval => $grammar->getFormattedInterval($value),
                 default => $value,
             };
         }
