@@ -131,8 +131,7 @@ class WebsocketClient implements SurrealClient
      * @param  \Laragear\Surreal\JsonRpc\QueryMessage  $statement
      * @param  bool  $async
      * @return \Illuminate\Support\Collection|\Illuminate\Support\LazyCollection
-     * @throws \Laragear\Surreal\Exceptions\FailedResponseError
-     * @throws \Laragear\Surreal\Exceptions\NotConnectedException
+     * @throws \Laragear\Surreal\Exceptions\FailedResponseError|\Laragear\Surreal\Exceptions\NotConnectedException
      */
     public function send(QueryMessage $statement, bool $async = false): Collection|LazyCollection
     {
@@ -159,7 +158,7 @@ class WebsocketClient implements SurrealClient
      *
      * @param  \Amp\Websocket\WebsocketMessage  $message
      * @return \Illuminate\Support\Collection
-     * @throws \Laragear\Surreal\Exceptions\FailedResponseError
+     * @throws \Laragear\Surreal\Exceptions\FailedResponseError|\Laragear\Surreal\Exceptions\NotConnectedException
      */
     protected function getResults(WebsocketMessage $message): Collection
     {
@@ -173,10 +172,10 @@ class WebsocketClient implements SurrealClient
 
         try {
             $serverMessage = json_decode($message->buffer(), true, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException) {
+        } catch (JsonException|StreamException) {
             throw new FailedResponseError('The SurrealDB message is invalid.');
-        } catch (StreamException|ClosedException $e) {
-            throw new FailedResponseError('The SurrealDB connection is closed.', $e->getCode(), $e);
+        } catch (ClosedException $e) {
+            throw new NotConnectedException('The SurrealDB connection is closed.', $e->getCode(), $e);
         }
 
         // If the response from the server is an error, throw a failed response.
