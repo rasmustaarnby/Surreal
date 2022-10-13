@@ -173,8 +173,8 @@ class SurrealConnectionTest extends TestCase
         $connection = $this->createConnection();
 
         $connection->getClient()->expects('send')->withArgs(function (ClientMessage $message): bool {
-            static::assertSame('SELECT * FROM $? LIMIT 1', $message->params[0]->statement);
-            static::assertSame(['foo:bar'], $message->params[1]->parameters);
+            static::assertSame('SELECT * FROM "foo:bar" LIMIT 1', $message->params[0]->statement);
+            static::assertEmpty($message->params[1]->parameters);
 
             return true;
         })->andReturn(new Collection());
@@ -187,8 +187,8 @@ class SurrealConnectionTest extends TestCase
         $connection = $this->createConnection();
 
         $connection->getClient()->expects('send')->twice()->withArgs(function (ClientMessage $message): bool {
-            static::assertSame('SELECT * FROM $? LIMIT 1', $message->params[0]->statement);
-            static::assertSame(['foo:bar'], $message->params[1]->parameters);
+            static::assertSame('SELECT * FROM "foo:bar" LIMIT 1', $message->params[0]->statement);
+            static::assertEmpty($message->params[1]->parameters);
 
             return true;
         })->andReturn(new Collection());

@@ -19,6 +19,7 @@ use function is_array;
 use function is_null;
 use function is_numeric;
 use function is_string;
+use function json_encode;
 use function preg_replace;
 use function preg_split;
 use function reset;
@@ -423,15 +424,8 @@ class SurrealGrammar extends Grammar
      */
     protected function compileFrom(Builder $query, $table)
     {
-        // Manually add the binding to the table, since it's also a SQL-injection vector,
-        // When the user uses a record ID as table name.
-        if (str_contains($table, ':')) {
-            $query->addBinding($table, 'from');
-
-            return 'FROM '.static::BINDING_STRING;
-        }
-
-        return 'FROM '.$this->wrapTable($table);
+        // With a simple JSON encoding trick we can wrap the ID into double quotes.
+        return 'FROM '. (str_contains($table, ':') ? json_encode($table) : $this->wrapTable($table));
     }
 
     /**
