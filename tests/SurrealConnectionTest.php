@@ -19,6 +19,7 @@ use Laragear\Surreal\Schema\SurrealSchemaState;
 use Laragear\Surreal\SurrealConnection;
 use Mockery;
 use Mockery\MockInterface;
+use RuntimeException;
 use function iterator_to_array;
 
 class SurrealConnectionTest extends TestCase
@@ -165,5 +166,88 @@ class SurrealConnectionTest extends TestCase
             'date' => '2020-01-01 00:00:00',
             'interval' => '1y3w4d5h2m7s8µs'
         ], $bindings);
+    }
+
+    public function test_from_aliases_table(): void
+    {
+        $connection = $this->createConnection();
+
+        $connection->getClient()->expects('send')->withArgs(function (ClientMessage $message): bool {
+            static::assertSame('SELECT * FROM $? LIMIT 1', $message->params[0]->statement);
+            static::assertSame(['foo:bar'], $message->params[1]->parameters);
+
+            return true;
+        })->andReturn(new Collection());
+
+        $connection->from('foo:bar')->first();
+    }
+
+    public function test_id_aliases_table_with_id_strict(): void
+    {
+        $connection = $this->createConnection();
+
+        $connection->getClient()->expects('send')->twice()->withArgs(function (ClientMessage $message): bool {
+            static::assertSame('SELECT * FROM $? LIMIT 1', $message->params[0]->statement);
+            static::assertSame(['foo:bar'], $message->params[1]->parameters);
+
+            return true;
+        })->andReturn(new Collection());
+
+        $connection->id('foo:bar')->first();
+        $connection->id('foo', 'bar')->first();
+    }
+
+    public function test_id_alises_fails_if_not_table_separated(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('The [foo] is not a valid SurrealDB record ID. Should be [table:id]');
+
+        $connection = $this->createConnection();
+
+        $connection->getClient()->expects('send')->never();
+
+        $connection->id('foo')->first();
+    }
+
+    public function test_id_alises_fails_if_more_than_one_table_separator(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('The [foo:bar:quz] is not a valid SurrealDB record ID. Should be [table:id]');
+
+        $connection = $this->createConnection();
+
+        $connection->getClient()->expects('send')->never();
+
+        $connection->id('foo:bar:quz')->first();
+    }
+
+    public function test_finds_record_by_id(): void
+    {
+        $connection = $this->createConnection();
+
+        $connection->getClient()->expects('send')->withArgs(function (ClientMessage $message): bool {
+            static::assertSame('SELECT * FROM `foo` WHERE `id` = $? LIMIT 1', $message->params[0]->statement);
+            static::assertSame(['foo:bar'], $message->params[1]->parameters);
+
+            return true;
+        })->andReturn(new Collection());
+
+        $connection->find('foo:bar');
+    }
+
+    public function test_finds_record_by_id_or_executes_callback(): void
+    {
+        $connection = $this->createConnection();
+
+        $connection->getClient()->expects('send')->withArgs(function (ClientMessage $message): bool {
+            static::assertSame('SELECT * FROM `foo` WHERE `id` = $? LIMIT 1', $message->params[0]->statement);
+            static::assertSame(['foo:bar'], $message->params[1]->parameters);
+
+            return true;
+        })->andReturn(new Collection());
+
+        $result = $connection->findOr('foo:bar', fn() => 'example');
+
+        static::assertSame('example', $result);
     }
 }
