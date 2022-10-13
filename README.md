@@ -289,7 +289,9 @@ DB::table('user:tobie')->fetch('account', 'account.users')->first();
 ```
 
 > **Note**
-> Using `fetch()` will return the whole related record.
+> Using `fetch()` will return the whole related records.
+> 
+> Since SELECT also affects the related record attributes, Laragear Surreal will automatically add the fetched attributes to the columns when not selecting all the attributes with `*`, which makes it overridable when using `select()`. 
 
 #### Joins
 
