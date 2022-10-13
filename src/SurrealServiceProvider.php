@@ -81,7 +81,6 @@ class SurrealServiceProvider extends ServiceProvider
                 }
             });
         }
-
     }
 
     /**
