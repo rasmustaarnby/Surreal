@@ -107,7 +107,7 @@ class WebsocketClient implements SurrealClient
      */
     public function stop(): void
     {
-        if (!$this->connection->isClosed()) {
+        if ($this->connection && !$this->connection->isClosed()) {
             $this->connection->close();
             $this->connection = null;
         }
@@ -274,5 +274,15 @@ class WebsocketClient implements SurrealClient
         return $config['driver'].'://'.$config['host']
             .(isset($config['port']) ? ':'.$config['port'] : '').'/'
             .($config['database'] ?? 'rpc');
+    }
+
+    /**
+     * Creates a new instance.
+     *
+     * @return static
+     */
+    public static function make(): static
+    {
+        return new static();
     }
 }
