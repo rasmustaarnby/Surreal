@@ -38,7 +38,7 @@ class QueryParameters implements Stringable, JsonSerializable, Jsonable, Arrayab
      */
     public function toJson($options = 0)
     {
-        return json_encode($this->parameters, $options);
+        return json_encode($this->jsonSerialize(), $options);
     }
 
     /**
