@@ -684,17 +684,51 @@ DB::table('article')->insert([
 $article = DB::table('article')->where('id', 'article:my-trip-to-italy')->fetch('tags.*.tag')->first();
 ```
 
+One drawback is that pivot data only resides on the origin, or the "child" record. To make this data shareable between both, 
+
 ### Graph Edges (planned)
 
-You may consider Graph Edges as one-way pivot records. A Graph Edge _relates_ one record to another record, which allows for infinite traversal, keeping data that relates to the far relation relevant to only the origin relation.
+You may consider Graph Edges as one-way pivot records. A Graph Edge _relates_ one record to another record, which allows for infinite traversal, keeping data that relates to the far relation relevant to only the origin relation, but accessible to both by _switching directions_.
 
 ```php
 use Illuminate\Support\Facades\DB;
 
-DB::relate('user:tobie')->as('buying', ['payment' => 'stripe'])->to('product:teddy-bear');
-// RELATE user:tobie->buying->product:teddy-bear CONTENT {
-//     payment: "stripe"
+DB::relate('user:tobie')->as('bought', ['through' => 'stripe'])->to('product:teddy-bear');
+// RELATE user:tobie->bought->product:teddy-bear CONTENT {
+//     through: "stripe"
 // }
+```
+
+Same as selecting a related record. For example, we can use the `related()` method to signal the graph edges and retrieve them
+
+```php
+use Illuminate\Support\Facades\DB;
+
+// Retrieve the user, the buying data, and the product bought.
+DB::id('user:tobie')->related(['->bought.*', '->bought->product.*'])->first();
+// SELECT *, <-bought.*, <-bought<-product.* FROM user:tobie
+
+// Retrieve the product bought, and all the users who bought it
+DB::id('product:teddy-bear')->related(['<-bought.*', '<-bought<-user.*'])->first();
+// SELECT *, <-bought.*, <-bought<-product.* FROM user:tobie
+```
+
+As you may guess, a Graph Edge can have many related children, like multiple users who bought the same product. You can alter a related Graph Edge query by issuing a callback.
+
+```php
+use Illuminate\Support\Facades\DB;
+
+// Retrieve the last 5 products bought by this user using Stripe.
+DB::id('user:tobie')->related([
+    '->bought' => fn($bought) => $bought->where('through', 'stripe')->latest()->limit(5),
+    '->bought->product.*'
+])->first();
+
+// Retrieve the last user who bought this product without using Stripe.
+DB::id('product:teddy-bear')->related([
+    '<-bought' => fn($bought) => $bought->whereNot('through', 'stripe')->latest()->limit(1),
+    '<-bought<-user.*'
+])->first();
 ```
 
 ## Laravel Octane Compatibility
