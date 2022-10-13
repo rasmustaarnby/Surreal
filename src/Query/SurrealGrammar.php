@@ -2,15 +2,15 @@
 
 namespace Laragear\Surreal\Query;
 
+use Carbon\CarbonInterval;
+use DateInterval;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\Grammars\Grammar;
 use Illuminate\Database\Query\JoinClause;
-use Illuminate\Support\Arr;
 use RuntimeException;
+use function array_filter;
 use function array_keys;
 use function array_map;
-use function array_merge;
-use function array_values;
 use function collect;
 use function end;
 use function explode;
@@ -19,8 +19,6 @@ use function is_array;
 use function is_null;
 use function is_numeric;
 use function is_string;
-use function json_encode;
-use function last;
 use function preg_replace;
 use function preg_split;
 use function reset;
@@ -191,6 +189,34 @@ class SurrealGrammar extends Grammar
      * @var array
      */
     protected $operators = self::OPERATORS;
+
+    /**
+     * Formats the Date Interval into something SurrealDB understands.
+     *
+     * @param  \DateInterval|string  $interval
+     * @return string
+     */
+    public function getFormattedInterval(DateInterval|string $interval): string
+    {
+        $interval = is_string($interval)
+            ? CarbonInterval::fromString($interval)
+            : CarbonInterval::instance($interval);
+
+        // SurrealDB (currently) does not support ISO 8601 intervals. We are forced here to
+        // take the values from the duration to whatever SurrealDB seems to understand.
+        // There may be some data that will be lost, but it's not on me to restore.
+        return implode('', array_filter([
+            $interval->y ? $interval->y . 'y' : null,
+            $interval->m ? $interval->weeks . 'w' : null,
+            $interval->dayzExcludeWeeks ? $interval->dayzExcludeWeeks . 'd' : null,
+            $interval->h ? $interval->h . 'h' : null,
+            $interval->m ? $interval->m . 'm' : null,
+            $interval->s ? $interval->s . 's' : null,
+            $interval->milliseconds ? $interval->milliseconds . 'ms' : null,
+            $interval->microseconds ? $interval->microseconds . 'µs' : null,
+        ]));
+    }
+
 
     /**
      * ------------------------------------------------------------------------
