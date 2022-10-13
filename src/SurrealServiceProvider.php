@@ -32,10 +32,8 @@ class SurrealServiceProvider extends ServiceProvider
      */
     protected function registerClient(): void
     {
-        $this->app->singleton('surreal.client', static function (): Contracts\SurrealClient {
-            return new Tcp\WebsocketClient();
-        });
-        $this->app->alias('surreal.client', Contracts\SurrealClient::class);
+        $this->app->singleton('surreal.client', Tcp\WebsocketClient::make(...));
+        $this->app->alias(Contracts\SurrealClient::class, 'surreal.client');
     }
 
     /**
