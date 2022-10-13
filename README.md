@@ -527,7 +527,7 @@ CREATE person CONTENT {
 
 ### Async queries (planned)
 
-Laragear Surreal driver support executing a query without waiting for the results until later in your code, which can yield massive performance improvements. Simply use `async()` in the query you want to execute, which will wrap the results into a promise.
+Laragear Surreal driver support executing a query without waiting for the results until later in your code, which can yield massive performance improvements. Simply use `async()` in the query you want to execute, which will wrap the operation into a promise that you can resolve later.
 
 Since Async Queries don't wait for the result, you can use them to one-off inserting data.
 
@@ -542,17 +542,17 @@ DB::table('user')
     ->update(['is_adult' => Future::be('age > 18')]);
 ```
 
-Also, you can use them a warm-up for queries that may be taxing to retrieve.
+Also, you can use to warm-up queries that may be taxing to retrieve with `cursor()`.
 
 ```php
 use Illuminate\Support\Facades\DB;
 use Laragear\Surreal\Query\Future;
 
-$popularArticles = DB::table('article')->has('comments', '>', 100)->async()->get();
+$popularArticles = DB::table('article')->has('comments', '>', 100)->cursor();
 
 // Later in your code...
 
-foreach ($popularArticles->wait() as $article) {
+foreach ($popularArticles as $article) {
     // ...
 }
 ```
