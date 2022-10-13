@@ -25,7 +25,7 @@ trait SurrealShorthands
      *
      * @param  string  $tableOrId
      * @param  \Stringable|string|int  $id
-     * @return \Illuminate\Database\Query\Builder|\RuntimeException
+     * @return \Illuminate\Database\Query\Builder
      */
     public function id($tableOrId, $id = null)
     {
@@ -36,7 +36,7 @@ trait SurrealShorthands
 
         // The record ID should have only one separator.
         if (substr_count($tableOrId, ':') !== 1) {
-            return new RuntimeException("The [$tableOrId] is not a valid SurrealDB record ID. Should be [table:id].");
+            throw new RuntimeException("The [$tableOrId] is not a valid SurrealDB record ID. Should be [table:id].");
         }
 
         return $this->table($tableOrId);
