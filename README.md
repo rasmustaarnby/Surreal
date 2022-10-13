@@ -12,12 +12,10 @@ Use a [SurrealDB](https://surrealdb.com/) database in your Laravel application.
 ```php
 use Illuminate\Support\Facades\DB;
 
-$user = DB::connection('surreal')->table('users')->first();
+$user = DB::connection('surreal')->find('article:1', ['title']);
 
 // [    
-//    "id": "user:kyvivydy8m9ugi1nkgrh",
-//    "name": "John",
-//    "email": "john@email.com"
+//    'title' => 'Let me tell you why SurrealDB is awesome',
 // ]
 ```
 
@@ -60,9 +58,9 @@ You may set your DB connection in Laravel by creating a new database entry in yo
 
 As you can guess, Laragear Surreal uses the [JSON-RPC](https://www.jsonrpc.org/) (WebSockets) endpoint thanks to [amphp v3](https://github.com/amphp/websocket-client).
 
-> **Note** 
+> **Note**
 > You may start SurrealDB matching the configuration in your terminal using `forge` in your local development:
-> 
+>
 > ```shell
 > surreal start --log debug --user forge --pass forge
 > ```
@@ -140,7 +138,7 @@ DEFINE FIELD created_at ON article TYPE datetime;
 ```
 
 > **Warning**
-> Durations in Surreal don't support months, and are not ISO 8601 compatible. You may use any `DateInterval` or `CarbonInterval` instance without months, or save an ISO 8601 string and apply the interval in your app.
+> Durations in Surreal don't support months, and **are not** ISO 8601 compatible. You may use any `DateInterval` or `CarbonInterval` instance without months, or save an ISO 8601 string and apply the interval in your app.
 
 ### Primary Keys
 
@@ -159,11 +157,29 @@ DB::connection('surreal')->table('article')->insert([
 
 ```json
 {
-  "id": "article:2n5xte3rxl4emiwhgs15",
-  "title": "My vacations in Italy",
-  "body": "...",
-  "tags": null,
-  "user": null
+    "id": "article:2n5xte3rxl4emiwhgs15",
+    "title": "My vacations in Italy",
+    "body": "...",
+    "tags": null,
+    "user": null
+}
+```
+
+Alternatively, you can create a record with its ID directly by using `id()`;
+
+```php
+use Illuminate\Support\Facades\DB;
+
+DB::connection('surreal')->id('article:1')->insert([
+   'title' => 'My vacations in Italy',
+   // ...
+])
+```
+
+```json
+{
+    "id": "article:1",
+    "...": "..."
 }
 ```
 
@@ -252,26 +268,26 @@ DB::table('user:tobie')->fetch('account', 'account.users')->first();
 
 ```json
 {
-  "id": "user:tobie",
-  "name": "Tobie",
-  "account": {
-    "id": "account:family",
-    "users": [
-      {
-        "id": "user:tobie",
-        "name": "Tobie"
-      },
-      {
-        "id": "user:ana",
-        "name": "Ana"
-      }
-    ]
-  }
+    "id": "user:tobie",
+    "name": "Tobie",
+    "account": {
+        "id": "account:family",
+        "users": [
+            {
+                "id": "user:tobie",
+                "name": "Tobie"
+            },
+            {
+                "id": "user:ana",
+                "name": "Ana"
+            }
+        ]
+    }
 }
 ```
 
 > **Note**
-> Using `fetch()` will return the whole related record.  
+> Using `fetch()` will return the whole related record.
 
 #### Joins
 
@@ -298,11 +314,11 @@ $article = DB::table('article:trip-to-italy')->insert([
 
 ```json
 {
-  "id": "article:trip-to-italy",
-  "title": "My vacations in Italy",
-  "body": "...",
-  "tags": null,
-  "user": null
+    "id": "article:trip-to-italy",
+    "title": "My vacations in Italy",
+    "body": "...",
+    "tags": null,
+    "user": null
 }
 ```
 
@@ -412,7 +428,7 @@ DB::table('user:tobie')->get([
 
 ### Futures (planned)
 
-Futures are properties that are computed **only** when the query results are selected and returned to the application. You may think of them as _embedded queries_ inside a record attribute. 
+Futures are properties that are computed **only** when the query results are selected and returned to the application. You may think of them as _embedded queries_ inside a record attribute.
 
 To create a Future, simple use `Future::be()` with the raw query to execute.
 
@@ -428,7 +444,8 @@ DB::table('person')->insert([
 ```
 
 ```sql
-CREATE person CONTENT {
+CREATE
+person CONTENT {
 	"name": 'Jason',
 	"friends": [person:tobie, person:jaime],
 	"adult_friends": <future> { friends[WHERE age > 18].name }
@@ -462,7 +479,7 @@ CREATE article CONTENT {
 
 ### Geometries (planned)
 
-You can conveniently create GeoJSON objects using the `Geometry` class instance. All geometry types in SurrealDB are supported. 
+You can conveniently create GeoJSON objects using the `Geometry` class instance. All geometry types in SurrealDB are supported.
 
 ```php
 use Illuminate\Support\Facades\DB;
@@ -565,7 +582,7 @@ DB::table('something')->insert([
 // }
 ```
 
-To let a function accept parameters, use `withArgs()` with the name of the arguments. Arguments can be accessed using `{$name}` inside the function, which will be automatically mapped into the function at query-time. 
+To let a function accept parameters, use `withArgs()` with the name of the arguments. Arguments can be accessed using `{$name}` inside the function, which will be automatically mapped into the function at query-time.
 
 ```php
 use Illuminate\Support\Facades\DB;
@@ -581,13 +598,13 @@ DB::table('person')->insert([
 ```
 
 > **Note**
-> While script functions are useful features, try not to abuse them because they can be tricky to debug. You're always a browser away to test a piece of javascript. 
+> While script functions are useful features, try not to abuse them because they can be tricky to debug. You're always a browser away to test a piece of javascript.
 
 ### Multiple Queries (planned)
 
 SurrealDB allows for multiple queries run through a single statement.
 
-For example, you may request one user from the database, and the latest three articles from the `article` table. Instead of running each query separately, you may use the `pool` method, which will execute all queries in a single request and return the result of each one. 
+For example, you may request one user from the database, and the latest three articles from the `article` table. Instead of running each query separately, you may use the `pool` method, which will execute all queries in a single request and return the result of each one.
 
 ```php
 use Illuminate\Support\Facades\DB;
@@ -607,9 +624,9 @@ The queries are resolved synchronously. Once all the queries are returned, you w
 
 ## Relationships
 
-SurrealDB breaks the mold on record relationships. If you come from Laravel, you will be pleased to know that relationships come out-of-the-box with SurrealDB: polymorphism is embedded, there is no pivot tables, and Graph Edges are preferred. Let's explain each one. 
+SurrealDB breaks the mold on record relationships. If you come from Laravel, you will be pleased to know that relationships come out-of-the-box with SurrealDB: polymorphism is embedded, there is no pivot tables, and Graph Edges are preferred. Let's explain each one.
 
-### Polymorphism 
+### Polymorphism
 
 A record can be related to another record through its ID. It doesn't matter if the ID is a number, UUID or a random string. This effectively relates a record to any other record, on the whole database.
 
