@@ -450,11 +450,10 @@ DB::table('person')->insert([
 ```
 
 ```sql
-CREATE
-person CONTENT {
-	"name": 'Jason',
-	"friends": [person:tobie, person:jaime],
-	"adult_friends": <future> { friends[WHERE age > 18].name }
+CREATE person CONTENT {
+    "name": 'Jason',
+    "friends": [person:tobie, person:jaime],
+    "adult_friends": <future> { friends[WHERE age > 18].name }
 }
 ```
 
@@ -476,10 +475,10 @@ DB::table('article')->insert([
 
 ```sql
 CREATE article CONTENT {
-	"title": 'Great places to visit',
-	"body": 'Italy, Spain, and London',
-	"category": 'trips',
-	"related_articles": <future> { SELECT * FROM article WHERE category = 'trips' ORDER BY created_at LIMIT 3 }
+    "title": 'Great places to visit',
+    "body": 'Italy, Spain, and London',
+    "category": 'trips',
+    "related_articles": <future> { SELECT * FROM article WHERE category = 'trips' ORDER BY created_at LIMIT 3 }
 };
 ```
 
@@ -522,6 +521,9 @@ CREATE person CONTENT {
     "friends": $adult_friends
 }
 ```
+
+> **Warning**
+> Always use named variables instead of numbers. Laragear Surreal uses `$1` type variables for the query bindings.
 
 ### Async queries (planned)
 
@@ -567,7 +569,7 @@ use Illuminate\Support\Facades\DB;
 use Laragear\Surreal\Query\Func;
 
 $http = Func::http()->head('https://surrealdb.com', [
-	'x-my-header': 'some unique string'
+    'x-my-header': 'some unique string'
 ]);
 
 DB::table($http)->get();
