@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 use RuntimeException;
 use function substr_count;
 
-trait SurrealShorthands
+trait QueryShorthands
 {
     /**
      * Begin a fluent query against a database table.
@@ -52,11 +52,11 @@ trait SurrealShorthands
      */
     public function find($id, $columns = ['*'])
     {
-        return $this->table(Str::before(':', $id))->find($id, $columns);
+        return $this->table(Str::before($id, ':'))->find($id, $columns);
     }
 
     /**
-     * Execute a query for a single record by ID or call a callback.
+     * Returns a record by its ID or call a callback.
      *
      * @param  mixed  $id
      * @param  \Closure|array|string  $columns
@@ -65,18 +65,17 @@ trait SurrealShorthands
      */
     public function findOr($id, $columns = ['*'], Closure $callback = null)
     {
-        return $this->table(Str::before(':', $id))->findOr($id, $columns, $callback);
+        if ($columns instanceof Closure) {
+            $callback = $columns;
+
+            $columns = ['*'];
+        }
+
+        if (null !== ($data = $this->find($id, $columns))) {
+            return $data;
+        }
+
+        return $callback();
     }
 
-    /**
-     * Run a CREATE statement against the database.
-     *
-     * @param  string  $query
-     * @param  array  $bindings
-     * @return \Illuminate\Support\Collection
-     */
-    public function create($query, $bindings = [])
-    {
-        return $this->statement($query, $bindings);
-    }
 }

@@ -18,7 +18,7 @@ class SurrealConnection extends Connection
 {
     use DetectsConcurrencyErrors,
         DetectsLostConnections,
-        SurrealShorthands;
+        QueryShorthands;
 
     /**
      * The SurrealDB Client.
@@ -134,6 +134,19 @@ class SurrealConnection extends Connection
     public function select($query, $bindings = [], $useReadPdo = true)
     {
         return $this->statement($query, $bindings);
+    }
+
+    /**
+     * Run a create statement against the database.
+     *
+     * @param  string  $query
+     * @param  \Laragear\Surreal\QueryShorthands  $queryShorthands
+     * @param  array  $bindings
+     * @return \Illuminate\Support\Collection
+     */
+    public function create($query, QueryShorthands $queryShorthands, $bindings = [])
+    {
+        return $queryShorthands->statement($query, $bindings);
     }
 
     /**
