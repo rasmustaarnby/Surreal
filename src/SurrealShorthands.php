@@ -2,6 +2,7 @@
 
 namespace Laragear\Surreal;
 
+use Closure;
 use Illuminate\Support\Str;
 use RuntimeException;
 use function substr_count;
@@ -40,6 +41,31 @@ trait SurrealShorthands
         }
 
         return $this->table($tableOrId);
+    }
+
+    /**
+     * Returns a record by its ID.
+     *
+     * @param  string  $id
+     * @param  array|string  $columns
+     * @return array|null
+     */
+    public function find($id, $columns = ['*'])
+    {
+        return $this->table(Str::before(':', $id))->find($id, $columns);
+    }
+
+    /**
+     * Execute a query for a single record by ID or call a callback.
+     *
+     * @param  mixed  $id
+     * @param  \Closure|array|string  $columns
+     * @param  \Closure|null  $callback
+     * @return mixed|static
+     */
+    public function findOr($id, $columns = ['*'], Closure $callback = null)
+    {
+        return $this->table(Str::before(':', $id))->findOr($id, $columns, $callback);
     }
 
     /**
