@@ -6,8 +6,8 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\Processors\Processor;
 use Illuminate\Support\Collection;
 use RuntimeException;
+use function array_keys;
 use function data_get;
-use function is_numeric;
 
 class SurrealProcessor extends Processor
 {
@@ -43,7 +43,7 @@ class SurrealProcessor extends Processor
     public function processInsertGetId(Builder $query, $sql, $values, $sequence = null)
     {
         // Since an insert operation will return all values, we can return the IDs exclusively.
-        // We can use the help of the SELECT processer to get the results we're interested in.
+        // We can use the help of the SELECT processor to get the results we're interested in.
         $inserted = $this->processSelect($query, $query->getConnection()->insert($sql, $values));
 
         $id = data_get($inserted->first(), 'id');
@@ -53,6 +53,17 @@ class SurrealProcessor extends Processor
         }
 
         // All the ids are `table:id` notation, which are strings.
-        return data_get($inserted->first(), 'id');
+        return $id;
+    }
+
+    /**
+     * Process the results of a column listing query.
+     *
+     * @param  \Illuminate\Database\Eloquent\Collection|array  $results
+     * @return array
+     */
+    public function processColumnListing($results)
+    {
+        return array_keys(data_get($results, 'result.fd'));
     }
 }
