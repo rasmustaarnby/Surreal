@@ -4,7 +4,7 @@ namespace Laragear\Surreal\Contracts;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\LazyCollection;
-use Laragear\Surreal\JsonRpc\QueryMessage;
+use Laragear\Surreal\JsonRpc\ClientMessage;
 
 interface SurrealClient
 {
@@ -40,12 +40,12 @@ interface SurrealClient
     /**
      * Sends a statement to SurrealDB, returns a Collection or a Lazy Collection if async.
      *
-     * @param  \Laragear\Surreal\JsonRpc\QueryMessage  $statement
+     * @param  \Laragear\Surreal\JsonRpc\ClientMessage  $statement
      * @param  bool  $async
      * @return \Illuminate\Support\Collection|\Illuminate\Support\LazyCollection
      * @throws \Laragear\Surreal\Exceptions\NotConnectedException
      */
-    public function send(QueryMessage $statement, bool $async = false): Collection|LazyCollection;
+    public function send(ClientMessage $statement, bool $async = false): Collection|LazyCollection;
 
     /**
      * Check if the Client instance is capturing statements for transactions.

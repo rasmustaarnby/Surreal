@@ -7,12 +7,11 @@ use Illuminate\Contracts\Support\Jsonable;
 use Illuminate\Support\Str;
 use JetBrains\PhpStorm\ArrayShape;
 use JsonSerializable;
-use Laragear\Surreal\Query\SurrealGrammar;
 use Stringable;
 use function array_keys;
 use function json_encode;
 
-class QueryMessage implements Stringable, JsonSerializable, Jsonable, Arrayable
+class ClientMessage implements Stringable, JsonSerializable, Jsonable, Arrayable
 {
     /**
      * Create a new Statement.

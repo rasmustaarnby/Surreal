@@ -17,7 +17,7 @@ use JsonException;
 use Laragear\Surreal\Contracts\SurrealClient;
 use Laragear\Surreal\Exceptions\FailedResponseError;
 use Laragear\Surreal\Exceptions\NotConnectedException;
-use Laragear\Surreal\JsonRpc\QueryMessage;
+use Laragear\Surreal\JsonRpc\ClientMessage;
 use RuntimeException;
 use Throwable;
 use function Amp\Websocket\Client\connect;
@@ -128,12 +128,12 @@ class WebsocketClient implements SurrealClient
      *
      * We will let async and Lazy Collection as placeholders once we figure async queries and promises.
      *
-     * @param  \Laragear\Surreal\JsonRpc\QueryMessage  $statement
+     * @param  \Laragear\Surreal\JsonRpc\ClientMessage  $statement
      * @param  bool  $async
      * @return \Illuminate\Support\Collection|\Illuminate\Support\LazyCollection
      * @throws \Laragear\Surreal\Exceptions\FailedResponseError|\Laragear\Surreal\Exceptions\NotConnectedException
      */
-    public function send(QueryMessage $statement, bool $async = false): Collection|LazyCollection
+    public function send(ClientMessage $statement, bool $async = false): Collection|LazyCollection
     {
         try {
             $this->connection->send($statement);

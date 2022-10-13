@@ -2,8 +2,8 @@
 
 namespace Laragear\Surreal\Events;
 
+use Laragear\Surreal\JsonRpc\ClientMessage;
 use Laragear\Surreal\SurrealConnection;
-use Laragear\Surreal\JsonRpc\QueryMessage;
 
 class StatementPrepared
 {
@@ -11,9 +11,9 @@ class StatementPrepared
      * Create a new event instance.
      *
      * @param  \Laragear\Surreal\SurrealConnection  $connection
-     * @param  \Laragear\Surreal\JsonRpc\QueryMessage  $statement
+     * @param  \Laragear\Surreal\JsonRpc\ClientMessage  $statement
      */
-    public function __construct(public SurrealConnection $connection, public QueryMessage $statement)
+    public function __construct(public SurrealConnection $connection, public ClientMessage $statement)
     {
         //
     }

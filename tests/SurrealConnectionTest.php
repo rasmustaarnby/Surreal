@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\LazyCollection;
 use Laragear\Surreal\Contracts\SurrealClient;
 use Laragear\Surreal\Events\StatementPrepared;
-use Laragear\Surreal\JsonRpc\QueryMessage;
+use Laragear\Surreal\JsonRpc\ClientMessage;
 use Laragear\Surreal\Query\SurrealGrammar;
 use Laragear\Surreal\Query\SurrealProcessor;
 use Laragear\Surreal\Schema\SurrealSchemaBuilder;
@@ -78,7 +78,7 @@ class SurrealConnectionTest extends TestCase
 
         $client = $connection->getClient();
 
-        $client->expects('send')->withArgs(function (QueryMessage $query): bool {
+        $client->expects('send')->withArgs(function (ClientMessage $query): bool {
             static::assertSame('query', $query->method);
             static::assertSame('foo', $query->params[0]->statement);
             static::assertSame(['foo'], $query->params[0]->bindingKeys);
@@ -103,7 +103,7 @@ class SurrealConnectionTest extends TestCase
 
         $client = $connection->getClient();
 
-        $client->expects('send')->withArgs(function (QueryMessage $query): bool {
+        $client->expects('send')->withArgs(function (ClientMessage $query): bool {
             static::assertSame('query', $query->method);
             static::assertSame('foo', $query->params[0]->statement);
             static::assertSame(['foo'], $query->params[0]->bindingKeys);
@@ -128,7 +128,7 @@ class SurrealConnectionTest extends TestCase
 
         $client = $connection->getClient();
 
-        $client->expects('send')->withArgs(function (QueryMessage $query, bool $async): bool {
+        $client->expects('send')->withArgs(function (ClientMessage $query, bool $async): bool {
             static::assertSame('query', $query->method);
             static::assertSame('foo', $query->params[0]->statement);
             static::assertSame(['foo'], $query->params[0]->bindingKeys);

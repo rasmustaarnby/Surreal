@@ -10,7 +10,7 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\QueryException;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
-use Laragear\Surreal\JsonRpc\QueryMessage;
+use Laragear\Surreal\JsonRpc\ClientMessage;
 use RuntimeException;
 use function microtime;
 
@@ -150,7 +150,7 @@ class SurrealConnection extends Connection
             }
 
             return $this->client->send(
-                $this->prepared(QueryMessage::queryWithUlid($query, $this->prepareBindings($bindings)))
+                $this->prepared(ClientMessage::queryWithUlid($query, $this->prepareBindings($bindings)))
             );
         });
     }
@@ -172,7 +172,7 @@ class SurrealConnection extends Connection
 
             // Using a cursor we can make an async query that returns each item.
             return $this->client->send(
-                $this->prepared(QueryMessage::queryWithUlid($query, $this->prepareBindings($bindings))), true
+                $this->prepared(ClientMessage::queryWithUlid($query, $this->prepareBindings($bindings))), true
             );
         });
 
@@ -184,8 +184,8 @@ class SurrealConnection extends Connection
     /**
      * Configure the PDO prepared statement.
      *
-     * @param  \Laragear\Surreal\JsonRpc\QueryMessage  $statement
-     * @return \Laragear\Surreal\JsonRpc\QueryMessage
+     * @param  \Laragear\Surreal\JsonRpc\ClientMessage  $statement
+     * @return \Laragear\Surreal\JsonRpc\ClientMessage
      */
     protected function prepared($statement)
     {
@@ -209,7 +209,7 @@ class SurrealConnection extends Connection
             }
 
             $affected = $this->client->send(
-                $this->prepared(QueryMessage::queryWithUlid($query, $this->prepareBindings($bindings)))
+                $this->prepared(ClientMessage::queryWithUlid($query, $this->prepareBindings($bindings)))
             )->count();
 
             $this->recordsHaveBeenModified((bool) $affected);
@@ -232,7 +232,7 @@ class SurrealConnection extends Connection
             }
 
             $result = $this->client->send(
-                $this->prepared(QueryMessage::queryWithUlid($query, []))
+                $this->prepared(ClientMessage::queryWithUlid($query, []))
             );
 
             $this->recordsHaveBeenModified($result->isNotEmpty());
