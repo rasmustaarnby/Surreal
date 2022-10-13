@@ -17,7 +17,8 @@ use function microtime;
 class SurrealConnection extends Connection
 {
     use DetectsConcurrencyErrors,
-        DetectsLostConnections;
+        DetectsLostConnections,
+        SurrealShorthands;
 
     /**
      * The SurrealDB Client.
