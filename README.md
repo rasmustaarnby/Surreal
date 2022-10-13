@@ -190,7 +190,9 @@ DB::connection('surreal')->id('article:1')->insert([
 
 Fields on tables support assertions at query-time when a value is inserted or updated. These assertions allow the query to fail completely if the value is not what is expected.
 
-For example, you may define the field `email` and assert that the value is email with `is::email($value)`. To use assertions, simply use `assert()` with the raw assertion. The value to insert into the data model is `$value`, and it should return `true` to allow the whole row being persisted.
+To use assertions, simply use `assert()` with the raw assertion. The value to insert into the data model is `$value`, and it should return `true` to allow the whole row being persisted.
+
+For example, you may define the field `email` and assert that the value is an email with `is::email($value)`.
 
 ```php
 use Illuminate\Support\Facades\Schema;
