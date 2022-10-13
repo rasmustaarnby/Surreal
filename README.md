@@ -434,7 +434,7 @@ DB::table('user:tobie')->get([
 
 ### Futures (planned)
 
-Futures are properties that are computed **only** when the query results are selected and returned to the application. You may think of them as _embedded queries_ inside a record attribute.
+Futures are properties that are computed **only** when the attributes are returned from a query. You may think of them as _embedded queries_ inside a record attribute.
 
 To create a Future, simple use `Future::be()` with the raw query to execute.
 
