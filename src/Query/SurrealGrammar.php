@@ -218,7 +218,6 @@ class SurrealGrammar extends Grammar
         ]));
     }
 
-
     /**
      * ------------------------------------------------------------------------
      * Base Grammar
