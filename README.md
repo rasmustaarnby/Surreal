@@ -690,13 +690,24 @@ One drawback is that pivot data only resides on the origin, or the "child" recor
 
 You may consider Graph Edges as one-way pivot records. A Graph Edge _relates_ one record to another record, which allows for infinite traversal, keeping data that relates to the far relation relevant to only the origin relation, but accessible to both by _switching directions_.
 
+To relate a record, use the `relate()`, `has()` or `does()` methods with the edge name, and execute the query with `to()` or `a()` along the related record ID. This makes your queries expressive on most scenarios. 
+
 ```php
 use Illuminate\Support\Facades\DB;
 
-DB::relate('user:tobie')->as('bought', ['through' => 'stripe'])->to('product:teddy-bear');
-// RELATE user:tobie->bought->product:teddy-bear CONTENT {
-//     through: "stripe"
-// }
+DB::id('user:tobie')->does()->knows(['family' => false])->user('taylor');
+
+DB::id('person:1')->has('bought', ['through' => 'stripe'])->a('product:teddy-bear');
+```
+
+```sql
+RELATE user:tobie->knows->user:taylor CONTENT {
+    family: false
+};
+
+RELATE person:1->bought->product:teddy-bear CONTENT {
+    through: "stripe"
+};
 ```
 
 Same as selecting a related record. For example, we can use the `related()` method to signal the graph edges and retrieve them
