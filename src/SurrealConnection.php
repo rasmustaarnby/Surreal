@@ -140,7 +140,18 @@ class SurrealConnection extends Connection
      * Run a create statement against the database.
      *
      * @param  string  $query
-     * @param  \Laragear\Surreal\QueryShorthands  $queryShorthands
+     * @param  array  $bindings
+     * @return \Illuminate\Support\Collection
+     */
+    public function create($query, $bindings = [])
+    {
+        return $this->statement($query, $bindings);
+    }
+
+    /**
+     * Run a relate statement against the database.
+     *
+     * @param  string  $query
      * @param  array  $bindings
      * @return \Illuminate\Support\Collection
      */
