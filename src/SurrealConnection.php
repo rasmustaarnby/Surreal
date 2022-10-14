@@ -155,9 +155,9 @@ class SurrealConnection extends Connection
      * @param  array  $bindings
      * @return \Illuminate\Support\Collection
      */
-    public function create($query, QueryShorthands $queryShorthands, $bindings = [])
+    public function relate($query, $bindings = [])
     {
-        return $queryShorthands->statement($query, $bindings);
+        return $this->statement($query, $bindings);
     }
 
     /**
