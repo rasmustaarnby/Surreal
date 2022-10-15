@@ -96,6 +96,31 @@ class SurrealConnectionTest extends TestCase
         $event->assertDispatched(StatementPrepared::class);
     }
 
+    public function test_runs_create(): void
+    {
+        $event = Event::fake(StatementPrepared::class);
+
+        $connection = $this->createConnection();
+
+        $client = $connection->getClient();
+
+        $client->expects('send')->withArgs(function (ClientMessage $query): bool {
+            static::assertSame('query', $query->method);
+            static::assertSame('foo', $query->params[0]->statement);
+            static::assertSame(['foo'], $query->params[0]->bindingKeys);
+            static::assertSame(['foo' => 'bar'], $query->params[1]->parameters);
+
+            return true;
+        })
+            ->andReturn($expected = new Collection(['baz' => 'quz']));
+
+        $result = $connection->create('foo', ['foo' => 'bar']);
+
+        static::assertSame($expected, $result);
+
+        $event->assertDispatched(StatementPrepared::class);
+    }
+
     public function test_runs_statement(): void
     {
         $event = Event::fake(StatementPrepared::class);
