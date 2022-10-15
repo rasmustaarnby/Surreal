@@ -426,8 +426,7 @@ class SurrealGrammar extends Grammar
      */
     protected function compileFrom(Builder $query, $table)
     {
-        // With a simple JSON encoding trick we can wrap the ID into double quotes.
-        return 'FROM '. (str_contains($table, ':') ? json_encode($table) : $this->wrapTable($table));
+        return 'FROM '. $this->wrapTable($table);
     }
 
     /**
