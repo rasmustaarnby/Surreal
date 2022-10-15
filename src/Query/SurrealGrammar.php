@@ -7,8 +7,10 @@ use DateInterval;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\Grammars\Grammar;
 use Illuminate\Database\Query\JoinClause;
+use Illuminate\Support\Str;
 use RuntimeException;
 use function array_filter;
+use function array_is_list;
 use function array_keys;
 use function array_map;
 use function collect;
@@ -17,7 +19,6 @@ use function explode;
 use function implode;
 use function is_array;
 use function is_null;
-use function is_numeric;
 use function is_string;
 use function json_encode;
 use function preg_replace;
@@ -178,8 +179,6 @@ class SurrealGrammar extends Grammar
         // 'parallel',
         // 'split',
         // 'fetch',
-        // 'timeout',
-        // 'return',
         // 'merge',
         // 'patch',
     ];
@@ -207,14 +206,14 @@ class SurrealGrammar extends Grammar
         // take the values from the duration to whatever SurrealDB seems to understand.
         // There may be some data that will be lost, but it's not on me to restore.
         return implode('', array_filter([
-            $interval->y ? $interval->y . 'y' : null,
-            $interval->m ? $interval->weeks . 'w' : null,
-            $interval->dayzExcludeWeeks ? $interval->dayzExcludeWeeks . 'd' : null,
-            $interval->h ? $interval->h . 'h' : null,
-            $interval->m ? $interval->m . 'm' : null,
-            $interval->s ? $interval->s . 's' : null,
-            $interval->milliseconds ? $interval->milliseconds . 'ms' : null,
-            $interval->microseconds ? $interval->microseconds . 'µs' : null,
+            $interval->y ? $interval->y.'y' : null,
+            $interval->m ? $interval->weeks.'w' : null,
+            $interval->dayzExcludeWeeks ? $interval->dayzExcludeWeeks.'d' : null,
+            $interval->h ? $interval->h.'h' : null,
+            $interval->m ? $interval->m.'m' : null,
+            $interval->s ? $interval->s.'s' : null,
+            $interval->milliseconds ? $interval->milliseconds.'ms' : null,
+            $interval->microseconds ? $interval->microseconds.'µs' : null,
         ]));
     }
 
@@ -426,7 +425,7 @@ class SurrealGrammar extends Grammar
      */
     protected function compileFrom(Builder $query, $table)
     {
-        return 'FROM '. $this->wrapTable($table);
+        return 'FROM '.$this->wrapTable($table);
     }
 
     /**
@@ -788,7 +787,7 @@ class SurrealGrammar extends Grammar
             return "CREATE $table";
         }
 
-        if (! is_array(reset($values))) {
+        if (!is_array(reset($values))) {
             $values = [$values];
         }
 
@@ -824,10 +823,10 @@ class SurrealGrammar extends Grammar
         $sql .= ' CONTENT { ';
 
         foreach ($values as $key => $value) {
-            $sql .= json_encode($key) . ' : ' . static::BINDING_STRING;
+            $sql .= json_encode($key).' : '.static::BINDING_STRING;
         }
 
-        return $sql . ' }';
+        return $sql.' }';
     }
 
     /**
@@ -841,7 +840,7 @@ class SurrealGrammar extends Grammar
      */
     public function compileInsertOrIgnore(Builder $query, array $values)
     {
-        throw new RuntimeException('SurrealDB does not support inserting while ignoring errors.');
+        return Str::replaceFirst('INSERT', 'INSERT IGNORE', $this->compileInsert($query, $values));
     }
 
     /**
@@ -884,18 +883,27 @@ class SurrealGrammar extends Grammar
      */
     public function compileUpsert(Builder $query, array $values, array $uniqueBy, array $update)
     {
-        $sql = $this->compileInsert($query, $values);
+        if ($uniqueBy && $uniqueBy !== ['id']) {
+            throw new RuntimeException(
+                'SurrealDB only supports upsert on the [id] primary key, '.$this->columnize($uniqueBy).' given.'
+            );
+        }
 
-        $sql .= ' ON DUPLICATE KEY UPDATE ('.$this->columnize($uniqueBy).') ';
+        if (array_is_list($update)) {
+            throw new RuntimeException('SurrealDB UPSERT requires the keys to update.');
+        }
 
-        $columns = collect($update)->map(function ($value, $key) {
-            return is_numeric($key)
-                ? $this->wrap($value).' = '.$this->wrapValue('excluded').'.'.$this->wrap($value)
-                : $this->wrap($key).' = '.$this->parameter($value);
+        $sql = $this->compileInsert($query, $values) . ' ON DUPLICATE KEY UPDATE ';
+
+        $columns = collect($update)->map(function ($value, $key) use ($query) {
+            $query->bindings['insert'] = $value;
+
+            return $this->wrap($key).' = '.$this->parameter($value);
         })->implode(', ');
 
         return $sql.$columns;
     }
+
     /**
      * Compile a delete statement without joins into SQL.
      *
