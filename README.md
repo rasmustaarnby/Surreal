@@ -753,9 +753,10 @@ There should be no problems using this package with Laravel Octane.
 
 ## Roadmap
 
-For this to work _elegantly_ with Laravel, the following features are planned to be supported:
+For this to work _elegantly_ with Laravel, the following features are planned to be supported, in no order:
 
-[ ] CREATE operations
+[x] CREATE operations
+[ ] RETURN operation
 [ ] Migrations
 [ ] Query-time casts
 [ ] Fluent Functions
