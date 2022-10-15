@@ -805,6 +805,32 @@ class SurrealGrammar extends Grammar
     }
 
     /**
+     * Compile an create statement into SQL.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  array  $values
+     * @return string
+     */
+    public function compileCreate(Builder $query, array $values)
+    {
+        $table = $this->wrapTable($query->from);
+
+        $sql = "CREATE $table";
+
+        if (empty($values)) {
+            return $sql;
+        }
+
+        $sql .= ' CONTENT { ';
+
+        foreach ($values as $key => $value) {
+            $sql .= json_encode($key) . ' : ' . static::BINDING_STRING;
+        }
+
+        return $sql . ' }';
+    }
+
+    /**
      * Compile an insert ignore statement into SQL.
      *
      * @param  \Illuminate\Database\Query\Builder  $query
