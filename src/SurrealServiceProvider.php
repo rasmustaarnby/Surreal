@@ -5,6 +5,7 @@ namespace Laragear\Surreal;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\ServiceProvider;
 use function class_exists;
 
@@ -87,10 +88,11 @@ class SurrealServiceProvider extends ServiceProvider
      * Registers the Query Builder macros.
      *
      * @return void
+     * @throws \ReflectionException
      */
     protected function registerBuilderMacros(): void
     {
-        // TODO: Check the README for the macros to register.
+        Builder::mixin(new Query\Builder());
     }
 
     /**
