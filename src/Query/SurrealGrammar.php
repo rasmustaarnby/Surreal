@@ -233,7 +233,10 @@ class SurrealGrammar extends Grammar
     public function wrapTable($table)
     {
         if (!$this->isExpression($table)) {
-            return $this->wrap($this->tablePrefix.$table, true);
+            // With a simple JSON encoding trick we can wrap the ID into double quotes.
+            return str_contains($table, ':')
+                ? json_encode($this->tablePrefix.$table)
+                : $this->wrap($this->tablePrefix.$table, true);
         }
 
         return $this->getValue($table);
