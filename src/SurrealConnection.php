@@ -174,8 +174,10 @@ class SurrealConnection extends Connection
                 return new Collection();
             }
 
+            $message = ClientMessage::queryWithUlid($query, $this->prepareBindings($bindings));
+
             return $this->client->send(
-                $this->prepared(ClientMessage::queryWithUlid($query, $this->prepareBindings($bindings)))
+                $this->prepared($message)
             );
         });
     }
