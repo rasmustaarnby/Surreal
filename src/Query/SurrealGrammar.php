@@ -893,7 +893,7 @@ class SurrealGrammar extends Grammar
             throw new RuntimeException('SurrealDB UPSERT requires the keys to update.');
         }
 
-        $sql = $this->compileInsert($query, $values) . ' ON DUPLICATE KEY UPDATE ';
+        $sql = $this->compileInsert($query, $values).' ON DUPLICATE KEY UPDATE ';
 
         $columns = collect($update)->map(function ($value, $key) use ($query) {
             $query->bindings['insert'] = $value;
