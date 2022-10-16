@@ -742,6 +742,18 @@ DB::id('product:teddy-bear')->related([
 ])->first();
 ```
 
+## Bindings
+
+Laravel uses the `?` placeholder to signal bindings. While this _can_ work with SurrealDB, it messes with operators like `?=` and `?~`. For that reason, the placeholder for SurrealDB queries is **`$?`**.
+
+When creating a query with bindings manually, you can use `$?` to set the bindings to replace.
+
+```php
+use Illuminate\Support\Facades\DB;
+
+DB::connection('surreal')->create('CREATE user:1 SET email = $?', ['john@email.com']);
+```
+
 ## Laravel Octane Compatibility
 
 * There are no singletons using a stale application instance.
