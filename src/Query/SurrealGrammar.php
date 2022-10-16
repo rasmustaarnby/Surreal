@@ -914,7 +914,13 @@ class SurrealGrammar extends Grammar
      */
     protected function compileDeleteWithoutJoins(Builder $query, $table, $where)
     {
-        return "DELETE FROM {$table} {$where}";
+        $sql = 'DELETE';
+
+        if (!str_contains($table, ':')) {
+            $sql .= ' FROM';
+        }
+
+        return "$sql $table $where";
     }
 
     /**
