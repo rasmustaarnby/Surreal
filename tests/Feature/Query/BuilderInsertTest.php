@@ -68,4 +68,13 @@ class BuilderInsertTest extends TestCase
 
         $this->surreal->table('user')->upsert(['foo' => 'alpha', 'bar' => 'beta'], 'invalid');
     }
+
+    public function test_insert_record_using_subquery(): void
+    {
+        $this->expectsMessage(
+            'INSERTO INTO `user` (`foo`, `bar`) VALUES ((SELECT * FROM ["Hello", "World"]))'
+        );
+
+        $this->surreal->table('user')->insertUsing(['foo', 'bar'], 'SELECT * FROM ["Hello", "World"]');
+    }
 }
