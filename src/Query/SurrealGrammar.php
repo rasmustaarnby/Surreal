@@ -853,7 +853,7 @@ class SurrealGrammar extends Grammar
      */
     public function compileInsertUsing(Builder $query, array $columns, string $sql)
     {
-        return "INSERTO INTO {$this->wrapTable($query->from)} ({$this->columnize($columns)}) $sql";
+        return "INSERTO INTO {$this->wrapTable($query->from)} ({$this->columnize($columns)}) VALUES (($sql))";
     }
 
     /**
