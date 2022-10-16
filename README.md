@@ -765,24 +765,9 @@ There should be no problems using this package with Laravel Octane.
 
 ## Roadmap
 
-For this to work _elegantly_ with Laravel, the following features are planned to be supported, in no order:
+For this to work _elegantly_ with Laravel, there is still a few tasks remaining to make this driver stable. Youcan check it out on the [Project Roadmap](https://github.com/orgs/Laragear/projects/1).
 
-[x] CREATE operations
-[ ] RETURN operation
-[ ] Migrations
-[ ] Query-time casts
-[ ] Fluent Functions
-[ ] Fluent Query Functions
-[ ] Fluent Permission Scoping
-[ ] Relate operations
-[ ] Transactions
-[ ] Async Queries (JSON Machine stream)
-[ ] Permissions
-[ ] Live Queries
-[ ] Pool/Parallel Queries
-[ ] Eloquent ORM compatibility (huge)
-
-If you're interested in these features, you may [become a sponsor](https://github.com/sponsors/DarkGhostHunter/).
+If you're interested in a stable release and fuel development, you may [become a sponsor](https://github.com/sponsors/DarkGhostHunter/).
 
 ## Security
 
