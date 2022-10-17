@@ -2,7 +2,7 @@
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/laragear/surreal.svg)](https://packagist.org/packages/laragear/surreal)
 [![Latest stable test run](https://github.com/Laragear/WebAuthn/workflows/Tests/badge.svg)](https://github.com/Laragear/Surreal/actions)
-[![Codecov coverage](https://codecov.io/gh/Laragear/WebAuthn/branch/1.x/graph/badge.svg?token=jAnyxbeNPX)](https://codecov.io/gh/Laragear/Surreal)
+[![Codecov coverage](https://codecov.io/gh/Laragear/Surreal/branch/main/graph/badge.svg?token=jAnyxbeNPX)](https://codecov.io/gh/Laragear/Surreal)
 [![CodeClimate Maintainability](https://api.codeclimate.com/v1/badges/d7dbd6836bcf5b4b90c6/maintainability)](https://codeclimate.com/github/Laragear/Surreal/maintainability)
 [![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=Laragear_Surreal&metric=alert_status)](https://sonarcloud.io/dashboard?id=Laragear_Surreal)
 [![Laravel Octane Compatibility](https://img.shields.io/badge/Laravel%20Octane-Compatible-success?style=flat&logo=laravel)](https://laravel.com/docs/9.x/octane#introduction)
