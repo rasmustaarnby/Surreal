@@ -32,6 +32,8 @@ use function trim;
 
 class SurrealGrammar extends Grammar
 {
+    use Concerns\CompileQueryFlags;
+
     /**
      * The string that acts as a placeholder for bindings.
      *
@@ -372,6 +374,10 @@ class SurrealGrammar extends Grammar
         );
 
         $query->columns = $original;
+
+        if ($flags = $this->compileFlagsWithoutReturn($query)) {
+            $sql .= " $flags";
+        }
 
         return $sql;
     }
@@ -815,17 +821,21 @@ class SurrealGrammar extends Grammar
 
         $sql = "CREATE $table";
 
-        if (empty($values)) {
-            return $sql;
+        if (! empty($values)) {
+            $sql .= ' CONTENT { ';
+
+            foreach ($values as $key => $value) {
+                $sql .= json_encode($key).' : '.static::BINDING_STRING;
+            }
+
+            $sql .= ' }';
         }
 
-        $sql .= ' CONTENT { ';
-
-        foreach ($values as $key => $value) {
-            $sql .= json_encode($key).' : '.static::BINDING_STRING;
+        if ($flags = $this->compileFlags($query)) {
+            $sql .= " $flags";
         }
 
-        return $sql.' }';
+        return $sql;
     }
 
     /**
@@ -866,7 +876,17 @@ class SurrealGrammar extends Grammar
      */
     protected function compileUpdateWithoutJoins(Builder $query, $table, $columns, $where)
     {
-        return "UPDATE {$table} SET {$columns} {$where}";
+        $sql = "UPDATE $table SET $columns";
+
+        if ($where) {
+            $sql .= ' ' . $where;
+        }
+
+        if ($flags = $this->compileFlags($query)) {
+            $sql .= " $flags";
+        }
+
+        return $sql;
     }
 
     /**
@@ -904,6 +924,34 @@ class SurrealGrammar extends Grammar
     }
 
     /**
+     * Compile a delete statement into SQL.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @return string
+     */
+    public function compileDelete(Builder $query)
+    {
+        $table = $this->wrapTable($query->from);
+
+        // If the user is deleting through an ID from this very table name, change it.
+        $id = collect($query->wheres)->search(
+            static fn(array $where): bool => $where['type'] === 'Basic' && $where['column'] === $query->from.'.id'
+        );
+
+        if ($id !== false) {
+            $query->wheres[$id]['column'] = 'id';
+        }
+
+        $where = $this->compileWheres($query);
+
+        return trim(
+            isset($query->joins)
+                ? $this->compileDeleteWithJoins($query, $table, $where)
+                : $this->compileDeleteWithoutJoins($query, $table, $where)
+        );
+    }
+
+    /**
      * Compile a delete statement without joins into SQL.
      *
      * @param  \Illuminate\Database\Query\Builder  $query
@@ -919,7 +967,17 @@ class SurrealGrammar extends Grammar
             $sql .= ' FROM';
         }
 
-        return "$sql $table $where";
+        $sql .= " $table";
+
+        if ($where) {
+            $sql .= " $where";
+        }
+
+        if ($flags = $this->compileFlags($query)) {
+            $sql .= " $flags";
+        }
+
+        return $sql;
     }
 
     /**

@@ -45,6 +45,13 @@ class BuilderDeleteTest extends TestCase
         $this->surreal->id('user:id')->delete();
     }
 
+    public function test_query_delete_id_as_argument(): void
+    {
+        $this->expectsMessage('DELETE FROM `user` WHERE `id` = $?', ['user:id']);
+
+        $this->surreal->table('user')->delete('user:id');
+    }
+
     public function test_query_delete_id_with_join_throws_exception(): void
     {
         $this->expectException(RuntimeException::class);
