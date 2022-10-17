@@ -1,64 +1,65 @@
 {
-  "name": "laragear/surreal",
-  "description": "Use a SurrealDB database in your Laravel application.",
-  "type": "library",
-  "license": "MIT",
-  "minimum-stability": "beta",
-  "prefer-stable": true,
-  "keywords": [
-    "laravel",
-    "database",
-    "nosql",
-    "sql",
-    "surreal",
-    "surrealdb"
-  ],
-  "authors": [
-    {
-      "name": "Italo Israel Baeza Cabrera",
-      "email": "darkghosthunter@gmail.com",
-      "homepage": "https://github.com/sponsors/DarkGhostHunter"
-    }
-  ],
-  "support": {
-    "source": "https://github.com/Laragear/Surreal",
-    "issues": "https://github.com/Laragear/Surreal/issues"
-  },
-  "require": {
-    "php": "^8.1",
-    "ext-curl": "*",
-    "amphp/websocket-client": "2.0.0-beta.1|^2.0",
-    "illuminate/support": "^9.35.1",
-    "illuminate/database": "^9.35.1"
-  },
-  "require-dev": {
-    "guzzlehttp/guzzle": "^7.5.0",
-    "jetbrains/phpstorm-attributes": "1.*",
-    "mockery/mockery": "^1.5",
-    "orchestra/testbench": "^7.10.2",
-    "phpunit/phpunit": "^9.5"
-  },
-  "autoload": {
-    "psr-4": {
-      "Laragear\\Surreal\\": "src"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "Tests\\": "tests"
-    }
-  },
-  "scripts": {
-    "test": "vendor/bin/phpunit --coverage-clover build/logs/clover.xml",
-    "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
-  },
-  "config": {
-    "sort-packages": true
-  },
-  "funding": [
-    {
-      "type": "Github Sponsors",
-      "url": "https://github.com/sponsors/DarkGhostHunter"
-    }
-  ]
+    "name": "laragear/surreal",
+    "description": "Use a SurrealDB database in your Laravel application.",
+    "type": "library",
+    "license": "MIT",
+    "minimum-stability": "beta",
+    "prefer-stable": true,
+    "keywords": [
+        "laravel",
+        "database",
+        "nosql",
+        "sql",
+        "surreal",
+        "surrealdb"
+    ],
+    "authors": [
+        {
+            "name": "Italo Israel Baeza Cabrera",
+            "email": "darkghosthunter@gmail.com",
+            "homepage": "https://github.com/sponsors/DarkGhostHunter"
+        }
+    ],
+    "support": {
+        "source": "https://github.com/Laragear/Surreal",
+        "issues": "https://github.com/Laragear/Surreal/issues"
+    },
+    "require": {
+        "php": "^8.1",
+        "ext-curl": "*",
+        "amphp/websocket-client": "2.0.0-beta.1|^2.0",
+        "illuminate/support": "^9.35.1",
+        "illuminate/database": "^9.35.1"
+    },
+    "require-dev": {
+        "guzzlehttp/guzzle": "^7.5.0",
+        "jetbrains/phpstorm-attributes": "1.*",
+        "mockery/mockery": "^1.5",
+        "orchestra/testbench": "^7.10.2",
+        "phpunit/phpunit": "^9.5",
+        "nikic/php-parser": "^4.15.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Laragear\\Surreal\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit --coverage-clover build/logs/clover.xml",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "funding": [
+        {
+            "type": "Github Sponsors",
+            "url": "https://github.com/sponsors/DarkGhostHunter"
+        }
+    ]
 }
