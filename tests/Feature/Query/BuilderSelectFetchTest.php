@@ -5,7 +5,7 @@ namespace Tests\Feature\Query;
 use Tests\AssertsMockConnection;
 use Tests\TestCase;
 
-class BuilderFetchTest extends TestCase
+class BuilderSelectFetchTest extends TestCase
 {
     use AssertsMockConnection;
 

@@ -5,7 +5,7 @@ namespace Tests\Feature\Query;
 use Tests\AssertsMockConnection;
 use Tests\TestCase;
 
-class BuilderSplitTest extends TestCase
+class BuilderSelectSplitTest extends TestCase
 {
     use AssertsMockConnection;
 
