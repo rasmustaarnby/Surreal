@@ -33,6 +33,7 @@ use function trim;
 class SurrealGrammar extends Grammar
 {
     use Concerns\CompileQueryFlags;
+    use Concerns\SplitResults;
 
     /**
      * The string that acts as a placeholder for bindings.
@@ -377,6 +378,10 @@ class SurrealGrammar extends Grammar
 
         if ($flags = $this->compileFlagsWithoutReturn($query)) {
             $sql .= " $flags";
+        }
+
+        if ($split = $this->compileSplit($query)) {
+            $sql .= " $split";
         }
 
         return $sql;

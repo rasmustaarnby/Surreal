@@ -112,4 +112,18 @@ class Builder
             return $this;
         };
     }
+
+    /**
+     * Split the results by each value in an array or nested array.
+     *
+     * @return \Closure
+     */
+    public function split(): Closure
+    {
+        return function ($key): QueryBuilder {
+            $this->grammar->split = func_num_args() > 1 ? func_get_args() : (array) $key;
+
+            return $this;
+        };
+    }
 }
