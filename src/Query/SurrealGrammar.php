@@ -34,6 +34,7 @@ class SurrealGrammar extends Grammar
 {
     use Concerns\CompileQueryFlags;
     use Concerns\SplitResults;
+    use Concerns\FetchRelations;
 
     /**
      * The string that acts as a placeholder for bindings.
@@ -376,12 +377,14 @@ class SurrealGrammar extends Grammar
 
         $query->columns = $original;
 
-        if ($flags = $this->compileFlagsWithoutReturn($query)) {
-            $sql .= " $flags";
-        }
+        $components = implode(' ', array_filter([
+            $this->compileFetch($query),
+            $this->compileFlagsWithoutReturn($query),
+            $this->compileSplit($query),
+        ]));
 
-        if ($split = $this->compileSplit($query)) {
-            $sql .= " $split";
+        if ($components) {
+            $sql .= " $components";
         }
 
         return $sql;

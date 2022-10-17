@@ -8,6 +8,7 @@ namespace Illuminate\Database\Query {
      * @method $this timeout(\DateInterval|\Carbon\CarbonInterval|int $timeout)
      * @method $this parallel()
      * @method $this split(...$keys)
+     * @method $this fetch(...$keys)
      * @method \Illuminate\Support\Collection|null create(array $attributes = [])
      */
     class Builder
