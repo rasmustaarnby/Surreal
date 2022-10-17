@@ -207,12 +207,11 @@ class SurrealGrammar extends Grammar
         // There may be some data that will be lost, but it's not on me to restore.
         return implode('', array_filter([
             $interval->y ? $interval->y.'y' : null,
-            $interval->m ? $interval->weeks.'w' : null,
+            $interval->weeks ? $interval->weeks.'w' : null,
             $interval->dayzExcludeWeeks ? $interval->dayzExcludeWeeks.'d' : null,
             $interval->h ? $interval->h.'h' : null,
             $interval->m ? $interval->m.'m' : null,
             $interval->s ? $interval->s.'s' : null,
-            $interval->milliseconds ? $interval->milliseconds.'ms' : null,
             $interval->microseconds ? $interval->microseconds.'µs' : null,
         ]));
     }
