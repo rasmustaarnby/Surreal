@@ -9,6 +9,8 @@ namespace Illuminate\Database\Query {
      * @method $this parallel()
      * @method $this split(...$keys)
      * @method $this fetch(...$keys)
+     * @method $this orderByCollate($field, $direction = 'asc')
+     * @method $this orderByNumeric($field, $direction = 'asc')
      * @method \Illuminate\Support\Collection|null create(array $attributes = [])
      */
     class Builder

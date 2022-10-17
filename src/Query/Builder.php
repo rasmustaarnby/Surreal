@@ -7,6 +7,8 @@ use Closure;
 use DateInterval;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
+use function array_key_last;
+use function array_merge;
 use function func_get_args;
 use function func_num_args;
 use function is_array;
@@ -136,6 +138,46 @@ class Builder
     {
         return function ($attributes): QueryBuilder {
             $this->grammar->fetch = func_num_args() > 1 ? func_get_args() : (array) $attributes;
+
+            return $this;
+        };
+    }
+
+    /**
+     * Order the results by collation.
+     *
+     * @return \Closure
+     */
+    public function orderByCollate(): Closure
+    {
+        return function ($field, $direction = 'asc') {
+            $this->orderBy($field, $direction);
+
+            $last = array_key_last($this->orders);
+
+            $this->orders[$last] = array_merge($this->orders[$last], [
+                'type' => 'collation'
+            ]);
+
+            return $this;
+        };
+    }
+
+    /**
+     * Order the results by numeric.
+     *
+     * @return \Closure
+     */
+    public function orderByNumeric(): Closure
+    {
+        return function ($field, $direction = 'asc') {
+            $this->orderBy($field, $direction);
+
+            $last = array_key_last($this->orders);
+
+            $this->orders[$last] = array_merge($this->orders[$last], [
+                'type' => 'numeric'
+            ]);
 
             return $this;
         };

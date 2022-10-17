@@ -27,6 +27,7 @@ use function reset;
 use function str_contains;
 use function str_replace;
 use function stripos;
+use function strtoupper;
 use function substr;
 use function trim;
 
@@ -722,16 +723,15 @@ class SurrealGrammar extends Grammar
     protected function compileOrdersToArray(Builder $query, $orders)
     {
         return array_map(function ($order) {
-            // Since the direction may be "COLLATE ASC" or "NUMERIC DESC", separate them
-            if (str_contains(' ', $order['direction'])) {
-                [$order['direction'], $order['mode']] = explode(' ', $order['direction']);
-            }
-
-            if ($order['sql']) {
+            if (isset($order['sql'])) {
                 return $order['sql'];
             }
 
-            return $this->wrap($order['column']).' '.($order['mode'] ? $order['mode'].' ' : '').$order['direction'];
+            if ($type = $order['type'] ?? null) {
+                $type = ' '.strtoupper($type);
+            }
+
+            return $this->wrap($order['column']).$type.' '.strtoupper($order['direction']);
         }, $orders);
     }
 
@@ -829,7 +829,7 @@ class SurrealGrammar extends Grammar
 
         $sql = "CREATE $table";
 
-        if (! empty($values)) {
+        if (!empty($values)) {
             $sql .= ' CONTENT { ';
 
             foreach ($values as $key => $value) {
@@ -887,7 +887,7 @@ class SurrealGrammar extends Grammar
         $sql = "UPDATE $table SET $columns";
 
         if ($where) {
-            $sql .= ' ' . $where;
+            $sql .= ' '.$where;
         }
 
         if ($flags = $this->compileFlags($query)) {
