@@ -20,7 +20,7 @@ use Laragear\Surreal\Exceptions\NotConnectedException;
 use Laragear\Surreal\JsonRpc\ClientMessage;
 use RuntimeException;
 use Throwable;
-use function Amp\Websocket\Client\connect;
+use function Amp\Websocket\Client\websocketConnector;
 use function base64_encode;
 use function json_decode;
 use function retry;
@@ -93,7 +93,7 @@ class WebsocketClient implements SurrealClient
 
         try {
             $this->connection = retry(3, static function () use ($handshake): WebsocketConnection {
-                return connect($handshake);
+                return websocketConnector()->connect($handshake);
             });
         } catch (Throwable $e) {
             throw new NotConnectedException('Failed to connect to SurrealDB.', $e->getCode(), $e);
