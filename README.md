@@ -247,7 +247,7 @@ This database driver should work with INSERT, SELECT, UPDATE, and DELETE operati
 
 Selects can proceed as normal. SurrealDB extends the normal `SELECT` clause with a few goodies to make queries more convenient.
 
-#### Selecting by a primary key (planned)
+#### Selecting by a primary key
 
 ```php
 use Illuminate\Support\Facades\DB;
@@ -256,7 +256,7 @@ $article = DB::find('article:2n5xte3rxl4emiwhgs15', ['*']);
 // SELECT * FROM article:2n5xte3rxl4emiwhgs15
 ```
 
-#### Fetch (planned)
+#### Fetch
 
 You can fetch related records using the `fetch` method and the attributes that contain the relations. This saves multiple queries into one.
 
@@ -265,7 +265,8 @@ use Illuminate\Support\Facades\DB;
 
 // Get his account, and the all the users for the given account. 
 DB::table('user:tobie')->fetch('account', 'account.users')->first();
-// SELECT * FROM user:tobie FETCH accout, account.users
+
+// SELECT * FROM user:tobie FETCH account, account.users
 ```
 
 ```json
@@ -289,9 +290,9 @@ DB::table('user:tobie')->fetch('account', 'account.users')->first();
 ```
 
 > **Note**
-> Using `fetch()` will return the whole related records.
+> Using `fetch()` will return all the attributes of the fetched record.
 > 
-> Since SELECT also affects the related record attributes, Laragear Surreal will automatically add the fetched attributes to the columns when not selecting all the attributes with `*`, which makes it overridable when using `select()`. 
+> Since SELECT also affects the related record attributes, Laragear Surreal will automatically add the fetched attributes to the columns when not selecting all the attributes with `*`, which makes it overridable when using `select()`.
 
 #### Joins
 
@@ -326,21 +327,64 @@ $article = DB::id('article:trip-to-italy')->insert([
 }
 ```
 
-> Inserts don't support changing the [return](#returns-planned).
+> Inserts don't support [return](#returns), [timeout](#timeouts) or [parallel](#parallel) flags.
 
-### Create (planned)
+### Create
+
+To create a single record into the database, you can use `create()`. It works the same as [`insert()`](#insert), but it supports [return](#returns), [timeout](#timeouts) and [parallel](#parallel) flags.
+
+```php
+use Illuminate\Support\Facades\DB;
+
+$article = DB::id('article:trip-to-italy')->returnNone()->create([
+   'title' => 'My vacations in Italy',
+   'body' => '...',
+   'tags' => null,
+   'user' => null
+]);
+```
 
 ### Updates
 
-Same case as insertions (or creation), the whole updated record is returned.
+Same case as creation, the whole updated record is returned.
+
+```php
+use Illuminate\Support\Facades\DB;
+
+$article = DB::id('article:trip-to-italy')->returnNone()->create([
+   'title' => 'My vacations in Italy',
+   'body' => '...',
+   'tags' => null,
+   'user' => null
+]);
+```
+
+You can also _upsert_ a record. Upsert in SurrealDB is only done in the primary key.
+
+```php
+use Illuminate\Support\Facades\DB;
+
+$article = DB::id('article:trip-to-italy')->upsert([
+   'title' => 'My vacations in Italy',
+   'body' => '...',
+   'tags' => null,
+   'user' => null
+], 'id', ['user' => 'user:1']);
+```
 
 ### Deletes
 
-Deletes don't return the deleted row.
+Deletes work as expected, but with the added possibility of returning the deleted record.
 
-### Returns (planned)
+```php
+use Illuminate\Support\Facades\DB;
 
-All operations return the whole records affected, which is very useful to know the final state of each record after a change, but it may consume too much memory when left unchecked.
+$deleted = DB::id('article:trip-to-italy')->return('before')->delete();
+```
+
+### Returns
+
+All operations return the whole records affected, except for deletions, which is very useful to know the final state of each record after a change, but it may consume too much memory when left unchecked.
 
 For all write operations, you can use `returnNone()` to avoid SurrealDB returning the data affected. For example, we can create a new article and not receive the new state from the database.
 
@@ -376,7 +420,7 @@ $after = DB::table('article:trip-to-italy')->return('after')->update([/** ... */
 $some = DB::table('article:trip-to-italy')->return(['title', 'body'])->update([/** ... */]);
 ```
 
-### Timeouts (planned)
+### Timeouts
 
 Timeout allows to kill entire queries that may take too much to process, like large updates or massive deletions. Setting a timeout treats the operation as a transaction, and it will be rolled back if it exceeds the defined duration.
 
@@ -394,15 +438,15 @@ DB::table('user')->timeout(5)->update([
 // } TIMEOUT 5s
 ```
 
-### Parallel (planned)
+### Parallel
 
 If you're confident that a record interconnected with others can be retrieved faster, use the `parallel()` method, which signals SurrealDB to [parallelize the fetch of relations](https://surrealdb.com/docs/surrealql/statements/select).
 
 ```php
 use Illuminate\Support\Facades\DB;
 
-DB::table('user:tobie')->parallel()->first('->purchased->product<-purchased<-person->purchased->product');
-// SELECT ->purchased->product<-purchased<-person->purchased->product FROM user:tobie PARALLEL
+DB::table('user:tobie')->parallel()->first('->purchased->product<-purchased<-person->purchased->product.*');
+// SELECT ->purchased->product<-purchased<-person->purchased->product.* FROM user:tobie PARALLEL
 ```
 
 Parallel operations can also be done for updating, inserting, creating, deleting and relating.
@@ -636,7 +680,7 @@ SurrealDB breaks the mold on record relationships. If you come from Laravel, you
 
 ### Polymorphism
 
-A record can be related to another record through its ID. It doesn't matter if the ID is a number, UUID or a random string. This effectively relates a record to any other record, on the whole database.
+A record can be related to another record through its ID. It doesn't matter if the ID is a number, UUID or a random string. This effectively relates a record to any other record on the database.
 
 ```php
 use Illuminate\Support\Facades\DB;
@@ -654,9 +698,9 @@ DB::table('user')->insert([
 ]);
 ```
 
-You may define an attribute to abide to only a number of given record types on [migrations](#migrations);
+You may define an attribute to abide to only a number of given record types on [migrations](#migrations-planned);
 
-### Belongs to many without pivots
+### Belongs to Many without pivots
 
 A record can contain an array of related records ID, or an array of objects with related records ID. There is no need to create pivot tables, let alone set up pivot data for each related record.
 
@@ -684,9 +728,9 @@ DB::table('article')->insert([
 $article = DB::table('article')->where('id', 'article:my-trip-to-italy')->fetch('tags.*.tag')->first();
 ```
 
-One drawback is that pivot data only resides on the origin, or the "child" record. To make this data shareable between both, 
+One drawback is that pivot data only resides on the origin, or the "child" record. To make this data _shared_ between both, you may use Graph Edges.
 
-### Graph Edges (planned)
+### Graph Edges
 
 You may consider Graph Edges as one-way pivot records. A Graph Edge _relates_ one record to another record, which allows for infinite traversal, keeping data that relates to the far relation relevant to only the origin relation, but accessible to both by _switching directions_.
 
@@ -715,7 +759,7 @@ RELATE person:1->bought->product:2 CONTENT {
 
 ### Retrieving Graph Edges
 
-Retrieving the graph edges can be done using a normal `select()`, and the direction of the edges. Since Graph Edges are treated as attributes keys, you should ensure that you want to retrieve all or some attributes from these graphs. These relations are _added_ to the select query, and returning as an array of many parents or children depending on the direction.
+Retrieving the graph edges can be done using a normal `select()` and the direction of the edges. Since Graph Edges are treated as attributes keys, you should ensure that you want to retrieve all or some attributes from these graphs. These relations are _added_ to the select query, and returning as an array of many parents or children.
 
 ```php
 use Illuminate\Support\Facades\DB;
