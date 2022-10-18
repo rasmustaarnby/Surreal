@@ -396,7 +396,7 @@ DB::table('user')->timeout(5)->update([
 
 ### Parallel (planned)
 
-If you're confident that a record interconnected with others can be retrieved faster, use the `inParallel()` method, which signals SurrealDB to [parallelize the fetch of relations](https://surrealdb.com/docs/surrealql/statements/select).
+If you're confident that a record interconnected with others can be retrieved faster, use the `parallel()` method, which signals SurrealDB to [parallelize the fetch of relations](https://surrealdb.com/docs/surrealql/statements/select).
 
 ```php
 use Illuminate\Support\Facades\DB;
@@ -445,7 +445,7 @@ use Laragear\Surreal\Query\Future;
 DB::table('person')->insert([
     'name' => 'Jason',
     'friends' => ['person:tobie', 'person:jaimie']
-    'adult_friends' => Future::be('friends[WHERE age > 18].name')
+    'adult_friends' => Future::be('friends[WHERE age > $?].name', [18])
 });
 ```
 
@@ -690,63 +690,108 @@ One drawback is that pivot data only resides on the origin, or the "child" recor
 
 You may consider Graph Edges as one-way pivot records. A Graph Edge _relates_ one record to another record, which allows for infinite traversal, keeping data that relates to the far relation relevant to only the origin relation, but accessible to both by _switching directions_.
 
-To relate a record, use the `relate()`, `has()` or `does()` methods with the edge name, and execute the query with `to()` or `a()` along the related record ID. This makes your queries expressive on most scenarios. 
+#### Relating records
+
+Using the Query Builder, you can start a _relate_ operation using `relatedTo()` and executing the statement with `through()`. You can also use fluent methods to name the Graph Edge dynamically.
 
 ```php
 use Illuminate\Support\Facades\DB;
 
-DB::id('user:tobie')->does()->knows(['family' => false])->user('taylor');
+DB::id('user:tobie')->relateTo('user:taylor')->through('knows', ['id' => 1, 'family' => false]);
 
-DB::id('person:1')->has('bought', ['through' => 'stripe'])->a('product:teddy-bear');
+DB::id('person:1')->relateTo('product:2')->bought(['through' => 'stripe']);
 ```
 
 ```sql
 RELATE user:tobie->knows->user:taylor CONTENT {
+    id: 1,
     family: false
 };
 
-RELATE person:1->bought->product:teddy-bear CONTENT {
+RELATE person:1->bought->product:2 CONTENT {
     through: "stripe"
 };
 ```
 
-Same as selecting a related record. For example, we can use the `related()` method to signal the graph edges and retrieve them
+### Retrieving Graph Edges
+
+Retrieving the graph edges can be done using a normal `select()`, and the direction of the edges. Since Graph Edges are treated as attributes keys, you should ensure that you want to retrieve all or some attributes from these graphs. These relations are _added_ to the select query, and returning as an array of many parents or children depending on the direction.
 
 ```php
 use Illuminate\Support\Facades\DB;
 
-// Retrieve the user, the buying data, and the product bought.
-DB::id('user:tobie')->related(['->bought.*', '->bought->product.*'])->first();
-// SELECT *, <-bought.*, <-bought<-product.* FROM user:tobie
+// Retrieve the user, the buying data, and all the products bought.
+DB::id('user:tobie')->select('*', '->bought.*', '->bought->product.*')->first();
 
 // Retrieve the product bought, and all the users who bought it
-DB::id('product:teddy-bear')->related(['<-bought.*', '<-bought<-user.*'])->first();
-// SELECT *, <-bought.*, <-bought<-product.* FROM user:tobie
+DB::id('product:teddy-bear')->select('*', '<-bought.*', '<-bought<-user.*')->first();
 ```
 
-As you may guess, a Graph Edge can have many related children, like multiple users who bought the same product. You can alter a related Graph Edge query by issuing a callback.
+```sql
+SELECT *, ->bought.*, ->bought->product.* FROM user:tobie
+
+SELECT *, <-bought.*, <-bought<-product.* FROM product:teddy-bear
+```
+
+For more powerful queries, you can use `related()`. The easiest way to travel Graph Edges is using `from()` and `to()` methods, or use the property or method appended with `from` and `to`, respectively. 
+
+```php
+use Illuminate\Support\Facades\DB;
+
+DB::id('user:tobie')->related()->to('bought')->to('product')->get();
+
+DB::id('product:1')->related()->fromBought->fromUser()->get();
+```
+
+```sql
+SELECT *, ->bought->product.*, FROM user:tobie
+
+SELECT *, <-bought<-user.*, FROM product:1
+```
+
+We can also use `related()` to filter the results through a query on each segment. For example, we can filter the 5 most recent products bought through Stripe.
 
 ```php
 use Illuminate\Support\Facades\DB;
 
 // Retrieve the last 5 products bought by this user using Stripe.
-DB::id('user:tobie')->related([
-    '->bought' => fn($bought) => $bought->where('through', 'stripe')->latest()->limit(5),
-    '->bought->product.*'
-])->first();
-
-// Retrieve the last user who bought this product without using Stripe.
-DB::id('product:teddy-bear')->related([
-    '<-bought' => fn($bought) => $bought->whereNot('through', 'stripe')->latest()->limit(1),
-    '<-bought<-user.*'
-])->first();
+DB::id('user:tobie')->related()
+    ->toBought(fn($query) => $query->where('through', 'stripe'))
+    ->toProduct()
+    ->latest()->limit(5)->get();
 ```
+
+```sql
+SELECT *, ->(bought WHERE through = "stripe")->product.* 
+    FROM user:tobie
+    ORDER BY `created_at`
+    LIMIT 5
+```
+
+The `related()` function allows to use an array of Graph Edges to traverse, making possible to retrieve multiple relations in one statement.
+
+```php
+use Illuminate\Support\Facades\DB;
+
+DB::id('user:tobie')->related(
+    ['->bought' => fn($query) => $query->where('through', 'stripe'), '->product'],
+    ['<-taxes', '<-invoices']
+)->get();
+```
+
+```sql
+SELECT *, ->(bought WHERE through = "stripe")->product.*, <-taxes<-invoices.* 
+    FROM user:tobie
+```
+
+> **Warning**
+> Currently SurrealDB doesn't support SELECT statements on edge subqueries. When setting a subquery, SurrealDB will append `.*` to retrieve all attributes of the far related record.
 
 ## Bindings
 
-Laravel uses the `?` placeholder to signal bindings. While this _can_ work with SurrealDB, it messes with operators like `?=` and `?~`. For that reason, the placeholder for SurrealDB queries is **`$?`**.
+Laravel uses the `?` placeholder to signal bindings. While this _can_ work with SurrealDB, it messes with operators like `?=` and `?~`. For that reason, the placeholder for SurrealDB queries is **`$?`**, and default bindings are set with numbers.
 
-When creating a query with bindings manually, you can use `$?` to set the bindings to replace.
+When creating a query with bindings manually, you can use `$?` place the binding to replace.
 
 ```php
 use Illuminate\Support\Facades\DB;
@@ -765,7 +810,7 @@ There should be no problems using this package with Laravel Octane.
 
 ## Roadmap
 
-For this to work _elegantly_ with Laravel, there is still a few tasks remaining to make this driver stable. Youcan check it out on the [Project Roadmap](https://github.com/orgs/Laragear/projects/1).
+For this to work _elegantly_ with Laravel, there is still a few tasks remaining to make this driver stable. You can check it out on the [Project Roadmap](https://github.com/orgs/Laragear/projects/1).
 
 If you're interested in a stable release and fuel development, you may [become a sponsor](https://github.com/sponsors/DarkGhostHunter/).
 
