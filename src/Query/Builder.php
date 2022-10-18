@@ -155,9 +155,7 @@ class Builder
 
             $last = array_key_last($this->orders);
 
-            $this->orders[$last] = array_merge($this->orders[$last], [
-                'type' => 'collation'
-            ]);
+            $this->orders[$last]['type'] = 'collation';
 
             return $this;
         };
@@ -175,9 +173,7 @@ class Builder
 
             $last = array_key_last($this->orders);
 
-            $this->orders[$last] = array_merge($this->orders[$last], [
-                'type' => 'numeric'
-            ]);
+            $this->orders[$last]['type'] = 'numeric';
 
             return $this;
         };
