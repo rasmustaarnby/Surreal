@@ -123,7 +123,7 @@ class Builder
     public function split(): Closure
     {
         return function ($key): QueryBuilder {
-            $this->grammar->split = func_num_args() > 1 ? func_get_args() : (array) $key;
+            $this->joins['split'] = func_num_args() > 1 ? func_get_args() : (array) $key;
 
             return $this;
         };

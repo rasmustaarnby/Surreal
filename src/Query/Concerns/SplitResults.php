@@ -7,13 +7,6 @@ use Illuminate\Database\Query\Builder;
 trait SplitResults
 {
     /**
-     * The keys of the record to split the results.
-     *
-     * @var array
-     */
-    public array $split = [];
-
-    /**
      * Compiles a SPLIT flag.
      *
      * @param  \Illuminate\Database\Query\Builder  $query
@@ -21,8 +14,8 @@ trait SplitResults
      */
     public function compileSplit(Builder $query)
     {
-        if ($this->split) {
-            return 'SPLIT AT ' . $this->columnize($this->split);
+        if (!empty($query->joins['split'])) {
+            return 'SPLIT AT ' . $this->columnize((array) $query->joins['split']);
         }
     }
 }
