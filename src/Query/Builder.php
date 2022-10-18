@@ -8,7 +8,6 @@ use DateInterval;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
 use function array_key_last;
-use function array_merge;
 use function func_get_args;
 use function func_num_args;
 use function is_array;
