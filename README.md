@@ -733,7 +733,7 @@ SELECT *, ->bought.*, ->bought->product.* FROM user:tobie
 SELECT *, <-bought.*, <-bought<-product.* FROM product:teddy-bear
 ```
 
-For more powerful queries, you can use `related()`. The easiest way to travel Graph Edges is using `from()` and `to()` methods, or use the property or method appended with `from` and `to`, respectively. 
+For more powerful queries, you can use `related()`. The easiest way to travel Graph Edges is using `from()` and `to()` methods, or use the property or method appended with `from` and `to`, respectively.
 
 ```php
 use Illuminate\Support\Facades\DB;

@@ -65,4 +65,17 @@ class BuilderSelectRelatedTest extends TestCase
                 '->user' => fn($query) => $query->where('age', 28)
             ])->get();
     }
+
+    public function test_selects_relation_with_dynamic_methods(): void
+    {
+        $this->expectsMessage('SELECT *, ->knows->(user WHERE `age` = $?).* FROM `user` TIMEOUT 5s PARALLEL', [28]);
+
+        $this->surreal->table('user')
+            ->timeout(5)
+            ->parallel()
+            ->related()
+            ->toKnows
+            ->toUser(fn($query) => $query->where('age', 28))
+            ->get();
+    }
 }
