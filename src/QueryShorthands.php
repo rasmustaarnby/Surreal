@@ -5,7 +5,6 @@ namespace Laragear\Surreal;
 use Closure;
 use Illuminate\Support\Str;
 use RuntimeException;
-use function substr_count;
 
 trait QueryShorthands
 {
@@ -35,8 +34,7 @@ trait QueryShorthands
             ? Str::finish($tableOrId, ':').$id
             : (string) $tableOrId;
 
-        // The record ID should have only one separator.
-        if (substr_count($tableOrId, ':') !== 1) {
+        if (Surreal::isNotId($tableOrId)) {
             throw new RuntimeException("The [$tableOrId] is not a valid SurrealDB record ID. Should be [table:id].");
         }
 
@@ -77,5 +75,4 @@ trait QueryShorthands
 
         return $callback();
     }
-
 }
