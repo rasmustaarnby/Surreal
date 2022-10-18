@@ -36,6 +36,7 @@ class SurrealGrammar extends Grammar
     use Concerns\CompileQueryFlags;
     use Concerns\SplitResults;
     use Concerns\FetchRelations;
+    use Concerns\SelectRelatedRelations;
 
     /**
      * The string that acts as a placeholder for bindings.
@@ -427,7 +428,13 @@ class SurrealGrammar extends Grammar
             throw new RuntimeException('SurrealDB does not support DISTINCT operations. Use GROUP BY instead.');
         }
 
-        return 'SELECT '.$this->columnize($columns);
+        $sql = 'SELECT '.$this->columnize($columns);
+
+        if ($relations = $this->compileGraphEdges($query)) {
+            $sql .= ", $relations";
+        }
+
+        return $sql;
     }
 
     /**
@@ -440,6 +447,47 @@ class SurrealGrammar extends Grammar
     protected function compileFrom(Builder $query, $table)
     {
         return 'FROM '.$this->wrapTable($table);
+    }
+
+    /**
+     * Compiles a RELATE operation.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  string  $edge
+     * @param  string  $relatedId
+     * @param  array  $values
+     * @return string
+     */
+    public function compileRelate(Builder $query, $edge, $relatedId, array $values)
+    {
+        $sql = "RELATE $query->from->$edge->$relatedId";
+
+        if ($content = $this->compileValuesToContent($values)) {
+            $sql .= " $content";
+        }
+
+        if ($flags = $this->compileFlags($query)) {
+            $sql .= " $flags";
+        }
+
+        return $sql;
+    }
+
+    /**
+     * Compiles the values into a content object array.
+     *
+     * @param  array  $values
+     * @return string|void
+     */
+    protected function compileValuesToContent(array $values)
+    {
+        if (!empty($values)) {
+            $attributes = implode(', ', array_map(static function (string|int $key): string {
+                return json_encode($key).' : '.static::BINDING_STRING;
+            }, array_keys($values)));
+
+            return "CONTENT { $attributes }";
+        }
     }
 
     /**
@@ -874,6 +922,24 @@ class SurrealGrammar extends Grammar
     }
 
     /**
+     * Compile an update statement into SQL.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  array  $values
+     * @return string
+     */
+    public function compileUpdate(Builder $query, array $values)
+    {
+        $table = $this->wrapTable($query->from);
+
+        $columns = $this->compileUpdateColumns($query, $values);
+
+        $where = $this->compileWheres($query);
+
+        return trim($this->compileUpdateWithoutJoins($query, $table, $columns, $where));
+    }
+
+    /**
      * Compile an update statement without joins into SQL.
      *
      * @param  \Illuminate\Database\Query\Builder  $query
@@ -952,11 +1018,7 @@ class SurrealGrammar extends Grammar
 
         $where = $this->compileWheres($query);
 
-        return trim(
-            isset($query->joins)
-                ? $this->compileDeleteWithJoins($query, $table, $where)
-                : $this->compileDeleteWithoutJoins($query, $table, $where)
-        );
+        return trim($this->compileDeleteWithoutJoins($query, $table, $where));
     }
 
     /**
