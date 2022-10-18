@@ -2,7 +2,6 @@
 
 namespace Laragear\Surreal\Query\Concerns;
 
-use Carbon\CarbonInterval;
 use Illuminate\Database\Query\Builder;
 use Laragear\Surreal\Query\ReturnType;
 use function array_filter;
@@ -10,27 +9,6 @@ use function implode;
 
 trait CompileQueryFlags
 {
-    /**
-     * The return to specify for the operation.
-     *
-     * @var \Laragear\Surreal\Query\ReturnType|string[]
-     */
-    public ReturnType|array $return = ReturnType::Default;
-
-    /**
-     * Sets a timeout to the query.
-     *
-     * @var \Carbon\CarbonInterval|null
-     */
-    public ?CarbonInterval $timeout = null;
-
-    /**
-     * Sets if the FETCH operations should be parallel.
-     *
-     * @var bool
-     */
-    public bool $parallel = false;
-
     /**
      * Compiles all flags into SurrealSQL.
      *
@@ -68,13 +46,13 @@ trait CompileQueryFlags
      */
     protected function compileReturn(Builder $query)
     {
-        return match ($this->return) {
+        return match ($query->joins['return'] ?? ReturnType::Default) {
             ReturnType::Default => '',
             ReturnType::None => 'RETURN NONE',
             ReturnType::Diff => 'RETURN DIFF',
             ReturnType::Before => 'RETURN BEFORE',
             ReturnType::After => 'RETURN AFTER',
-            default => 'RETURN '. $this->columnize($this->return),
+            default => 'RETURN '. $this->columnize($query->joins['return']),
         };
     }
 
@@ -86,8 +64,8 @@ trait CompileQueryFlags
      */
     protected function compileTimeout(Builder $query)
     {
-        if ($this->timeout && $this->timeout->totalMicroseconds > 0) {
-            return 'TIMEOUT ' . $this->getFormattedInterval($this->timeout);
+        if (isset($query->joins['timeout']) && $query->joins['timeout']->totalMicroseconds > 0) {
+            return 'TIMEOUT ' . $this->getFormattedInterval($query->joins['timeout']);
         }
     }
 
@@ -99,7 +77,7 @@ trait CompileQueryFlags
      */
     protected function compileParallel(Builder $query)
     {
-        if ($this->parallel) {
+        if ($query->joins['parallel'] ?? false) {
             return 'PARALLEL';
         }
     }

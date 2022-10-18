@@ -59,7 +59,7 @@ class Builder
             //   2. If is the enum itself, set it.                                          (ReturnType:Default)
             //   3. If there are more arguments, set them all.                              ("foo", "bar"...)
             //   4. The default is a string or array, set them "all" as list.               ("foo")
-            $this->grammar->return = match (true) {
+            $this->joins['return'] = match (true) {
                 is_string($type) && ReturnType::tryFrom($type) => ReturnType::from($type),
                 $type instanceof ReturnType => $type,
                 func_num_args() > 1 => func_get_args(),
@@ -91,7 +91,7 @@ class Builder
     public function timeout(): Closure
     {
         return function (DateInterval|CarbonInterval|int $duration): QueryBuilder {
-            $this->grammar->timeout = match (true) {
+            $this->joins['timeout'] = match (true) {
                 is_int($duration) => CarbonInterval::create(0, seconds: $duration),
                 $duration instanceof DateInterval => CarbonInterval::instance($duration),
                 default => $duration
@@ -109,7 +109,7 @@ class Builder
     public function parallel(): Closure
     {
         return function (): QueryBuilder {
-            $this->grammar->parallel = true;
+            $this->joins['parallel'] = true;
 
             return $this;
         };
