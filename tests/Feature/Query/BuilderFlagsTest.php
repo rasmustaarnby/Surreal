@@ -11,34 +11,22 @@ class BuilderFlagsTest extends TestCase
 {
     use AssertsMockConnection;
 
-    public function test_return_is_default_by_default(): void
-    {
-        static::assertSame(ReturnType::Default, $this->surreal->query()->getGrammar()->return);
-    }
-
-    public function test_return_accepts_enum(): void
-    {
-        $query = $this->surreal->id('user:bar')->return(ReturnType::Before);
-
-        static::assertSame(ReturnType::Before, $query->getGrammar()->return);
-    }
-
     public function test_return_accepts_array_of_attributes(): void
     {
         $query = $this->surreal->id('user:bar')->return(['foo', 'bar']);
 
-        static::assertSame(['foo', 'bar'], $query->getGrammar()->return);
+        static::assertSame(['foo', 'bar'], $query->joins['return']);
 
         $query = $this->surreal->id('user:bar')->return('foo', 'bar');
 
-        static::assertSame(['foo', 'bar'], $query->getGrammar()->return);
+        static::assertSame(['foo', 'bar'], $query->joins['return']);
     }
 
     public function test_return_none_alias(): void
     {
         $query = $this->surreal->id('user:bar')->returnNone();
 
-        static::assertSame(ReturnType::None, $query->getGrammar()->return);
+        static::assertSame(ReturnType::None, $query->joins['return']);
     }
 
     public function test_return_create(): void

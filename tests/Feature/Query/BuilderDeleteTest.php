@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Query;
 
-use RuntimeException;
 use Tests\AssertsMockConnection;
 use Tests\TestCase;
 
@@ -50,13 +49,5 @@ class BuilderDeleteTest extends TestCase
         $this->expectsMessage('DELETE FROM `user` WHERE `id` = $?', ['user:id']);
 
         $this->surreal->table('user')->delete('user:id');
-    }
-
-    public function test_query_delete_id_with_join_throws_exception(): void
-    {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('SurrealDB does not support JOIN operations. Use FETCH or <-/-> instead.');
-
-        $this->surreal->id('user:id')->join('foo', 'bar')->delete();
     }
 }
