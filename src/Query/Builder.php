@@ -47,6 +47,26 @@ class Builder
     }
 
     /**
+     * Relates two records through and edge and data.
+     *
+     * @return \Closure
+     */
+    public function relate(): Closure
+    {
+        return function ($id, $edge, $relatedId, $values) {
+            if (is_array(reset($values))) {
+                ksort($values);
+            }
+
+            $this->applyBeforeQueryCallbacks();
+
+            return $this->connection->create(
+                $this->grammar->compileRelate($this, $edge, $relatedId, $values), $values,
+            );
+        };
+    }
+
+    /**
      * Set the return to a given type.
      *
      * @return \Closure
@@ -174,6 +194,38 @@ class Builder
             $last = array_key_last($this->orders);
 
             $this->orders[$last]['type'] = 'numeric';
+
+            return $this;
+        };
+    }
+
+    /**
+     * Starts a relate operation.
+     *
+     * @return \Closure
+     */
+    public function relateTo(): Closure
+    {
+        return function ($related): RelateTo {
+            return new RelateTo($this, $related);
+        };
+    }
+
+    /**
+     * Adds related records to fetch in a query.
+     *
+     * @return \Closure
+     */
+    public function related(): Closure
+    {
+        return function (string|array ...$related): QueryBuilder|Related {
+            if (empty($related)) {
+                return new Related($this);
+            }
+
+            foreach ($related as $relation) {
+                $this->joins['edges'][] = (array) $relation;
+            }
 
             return $this;
         };
