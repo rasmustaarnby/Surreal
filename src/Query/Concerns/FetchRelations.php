@@ -7,13 +7,6 @@ use Illuminate\Database\Query\Builder;
 trait FetchRelations
 {
     /**
-     * The attribute keys to retrieve as parent records.
-     *
-     * @var array
-     */
-    public array $fetch = [];
-
-    /**
      * Compile the FETCH relation operation.
      *
      * @param  \Illuminate\Database\Query\Builder  $query
@@ -21,8 +14,8 @@ trait FetchRelations
      */
     public function compileFetch(Builder $query)
     {
-        if (!empty($this->fetch)) {
-            return 'FETCH '.$this->columnize($this->fetch);
+        if (!empty($query->joins['fetch'])) {
+            return 'FETCH '.$this->columnize((array) $query->joins['fetch']);
         }
     }
 }

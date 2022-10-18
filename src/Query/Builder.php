@@ -137,7 +137,7 @@ class Builder
     public function fetch(): Closure
     {
         return function ($attributes): QueryBuilder {
-            $this->grammar->fetch = func_num_args() > 1 ? func_get_args() : (array) $attributes;
+            $this->joins['fetch'] = func_num_args() > 1 ? func_get_args() : (array) $attributes;
 
             return $this;
         };
