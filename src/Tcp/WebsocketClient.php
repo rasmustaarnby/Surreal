@@ -3,8 +3,6 @@
 namespace Laragear\Surreal\Tcp;
 
 use Amp\ByteStream\StreamException;
-use Amp\Http\Client\HttpException;
-use Amp\Websocket\Client\WebsocketConnectException;
 use Amp\Websocket\Client\WebsocketConnection;
 use Amp\Websocket\Client\WebsocketHandshake;
 use Amp\Websocket\ClosedException;
@@ -236,31 +234,6 @@ class WebsocketClient implements SurrealClient
     public function cancel(): void
     {
         throw new RuntimeException('Transactions are not supported (yet).');
-    }
-
-    /**
-     * Create a new WS Client for Surreal DB using a config array.
-     *
-     * @param  array  $config
-     * @return static
-     * @throws \Laragear\Surreal\Exceptions\NotConnectedException
-     */
-    public static function fromConfig(array $config): static
-    {
-        $handshake = new WebsocketHandshake(static::buildUrl($config), [
-            'Authorization' => 'Basic '.base64_encode($config['username'].':'.$config['password']),
-            'NS' => $config['ns'],
-            'DB' => $config['db'],
-        ]);
-
-        // There is no connection, or is closed. Create a new one and return it.
-        try {
-            $connection = connect($handshake);
-        } catch (WebsocketConnectException|HttpException $e) {
-            throw new NotConnectedException('Failed to connect to SurrealDB.', $e->getCode(), $e);
-        }
-
-        return new static($connection);
     }
 
     /**
