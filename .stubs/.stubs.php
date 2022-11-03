@@ -1,5 +1,7 @@
 <?php
 
+/** @noinspection  */
+
 namespace Illuminate\Database\Query {
 
     /**
@@ -16,6 +18,24 @@ namespace Illuminate\Database\Query {
      * @method \Laragear\Surreal\Query\RelateTo relateTo($relatedId)
      */
     class Builder
+    {
+        //
+    }
+}
+
+namespace Illuminate\Database\Schema {
+
+    /**
+     * @method \Illuminate\Database\Schema\ColumnDefinition any($column)
+     * @method \Illuminate\Database\Schema\ColumnDefinition array($column)
+     * @method \Illuminate\Database\Schema\ColumnDefinition duration($column)
+     * @method \Illuminate\Database\Schema\ColumnDefinition interval($column)
+     * @method \Illuminate\Database\Schema\ColumnDefinition number($column)
+     * @method \Illuminate\Database\Schema\ColumnDefinition object($column)
+     * @method \Illuminate\Database\Schema\ColumnDefinition record($column, $tables)
+     * @method \Illuminate\Database\Schema\ColumnDefinition geoJson($column, $types = ['feature'])
+     */
+    class Blueprint
     {
         //
     }

@@ -2,10 +2,12 @@
 
 namespace Laragear\Surreal;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\ServiceProvider;
 use function class_exists;
 
@@ -15,7 +17,8 @@ class SurrealServiceProvider extends ServiceProvider
      * Register any application services.
      *
      * @return void
-     * @throws \Illuminate\Contracts\Container\BindingResolutionException
+     * @throws BindingResolutionException
+     * @throws \ReflectionException
      */
     public function register(): void
     {
@@ -34,7 +37,7 @@ class SurrealServiceProvider extends ServiceProvider
     protected function registerClient(): void
     {
         $this->app->singleton('surreal.client', Tcp\WebsocketClient::make(...));
-        $this->app->alias(Contracts\SurrealClient::class, 'surreal.client');
+        $this->app->alias('surreal.client', Contracts\SurrealClient::class);
     }
 
     /**
@@ -99,9 +102,10 @@ class SurrealServiceProvider extends ServiceProvider
      * Registers the Blueprint macros.
      *
      * @return void
+     * @throws \ReflectionException
      */
     protected function registerBlueprintMacros(): void
     {
-        // TODO: Check the README for the macros to register.
+        Blueprint::mixin(new Schema\Blueprint());
     }
 }
