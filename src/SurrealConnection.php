@@ -10,6 +10,7 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\QueryException;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
+use Laragear\Surreal\Functions\SurrealFunction;
 use Laragear\Surreal\JsonRpc\ClientMessage;
 use RuntimeException;
 use function microtime;
@@ -279,6 +280,16 @@ class SurrealConnection extends Connection
         $grammar = $this->getQueryGrammar();
 
         foreach ($bindings as $key => $value) {
+            // If the binding is a SurrealFunction, we will need to remove it from
+            // the list, and push the function bindings to the parent query.
+            if ($value instanceof SurrealFunction) {
+                unset($bindings[$key]);
+
+                array_push($bindings, ...$value->bindings);
+
+                continue;
+            }
+
             $bindings[$key] = match (true) {
                 $value instanceof DateTimeInterface => $value->format($grammar->getDateFormat()),
                 $value instanceof DateInterval => $grammar->getFormattedInterval($value),

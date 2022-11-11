@@ -3,13 +3,13 @@
 namespace Laragear\Surreal\Schema;
 
 use BadMethodCallException;
+use Illuminate\Database\Query\Expression;
 use Laragear\Surreal\Query\Func;
 use function method_exists;
 use function sprintf;
 
 /**
  * @method \Laragear\Surreal\Functions\ArrayFunction array()
- * @method \Laragear\Surreal\Functions\CountFunction count()
  * @method \Laragear\Surreal\Functions\CryptoFunction crypto()
  * @method \Laragear\Surreal\Functions\GeoFunction geo()
  * @method \Laragear\Surreal\Functions\HttpFunction http()
@@ -28,6 +28,17 @@ use function sprintf;
  */
 class FieldAssertion
 {
+    /**
+     * Counts a row, or whether a given value is truthy.
+     *
+     * @param  string  $value
+     * @return \Illuminate\Database\Query\Expression
+     */
+    public function count(string $value): Expression
+    {
+        return new Expression("count($value)");
+    }
+
     /**
      * Handle dynamic calls to a function to assert.
      *

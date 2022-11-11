@@ -4,58 +4,144 @@ namespace Laragear\Surreal\Functions;
 
 class ArrayFunction
 {
-    public function combine(string $array, string $combine)
+    /**
+     * Combines all values from two arrays together.
+     *
+     * @param  string  $array
+     * @param  string  $combine
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function combine(string $array, string $combine): SurrealFunction
     {
-        // TODO: Create combine function;
+        return SurrealFunction::make('array::combine($?, $?)', [$array, $combine]);
     }
 
-    public function concat(string $array, string $concat)
+    /**
+     * Returns the merged values from two arrays.
+     *
+     * @param  string  $array
+     * @param  string  $concat
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function concat(string $array, string $concat): SurrealFunction
     {
-        // TODO: Create concat function;
+        return SurrealFunction::make('array::concat($?, $?)', [$array, $concat]);
     }
 
-    public function difference(string $array, string $difference)
+    /**
+     * Returns the difference between two arrays.
+     *
+     * @param  string  $array
+     * @param  string  $difference
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function difference(string $array, string $difference): SurrealFunction
     {
-        // TODO: Create difference function;
+        return SurrealFunction::make('array::difference($?, $?)', [$array, $difference]);
     }
 
-    public function distinct(string $array)
+    /**
+     * Returns the difference between two arrays.
+     *
+     * @param  string  $array
+     * @param  string  $difference
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function diff(string $array, string $difference): SurrealFunction
     {
-        // TODO: Create distinct function;
+        return $this->difference($array, $difference);
     }
 
-    public function intersect(string $array, string $intersect)
+    /**
+     * Returns the unique items in an array.
+     *
+     * @param  string  $array
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function distinct(string $array): SurrealFunction
     {
-        // TODO: Create intersect function;
+        return SurrealFunction::make('array::distinct($?)', [$array]);
     }
 
-    public function len(string $array)
+    /**
+     * Returns the values which intersect two arrays.
+     *
+     * @param  string  $array
+     * @param  string  $intersect
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function intersect(string $array, string $intersect): SurrealFunction
     {
-        // TODO: Create len function;
+        return SurrealFunction::make('array::intersect($?, $?)', [$array, $intersect]);
     }
 
-    public function length(string $array)
+    /**
+     * Returns the length of an array.
+     *
+     * @param  string  $array
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function len(string $array): SurrealFunction
     {
-        return $this->len();
+        return SurrealFunction::make('array::len($?)', [$array]);
     }
 
-    public function sort(string $array, bool $ascending = true)
+    /**
+     * Returns the length of an array.
+     *
+     * @param  string  $array
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function length(string $array): SurrealFunction
     {
-        // TODO: Create sort function;
+        return $this->len($array);
     }
 
-    public function sortAsc(string $array)
+    /**
+     * Sorts the values in an array in ascending or descending order.
+     *
+     * @param  string  $array
+     * @param  bool  $ascending
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function sort(string $array, bool $ascending = true): SurrealFunction
     {
-        // TODO: Create sort asc function;
+        return $ascending
+            ? SurrealFunction::make('array::sort::asc($?)', [$array])
+            : SurrealFunction::make('array::sort::desc($?)', [$array]);
     }
 
-    public function sortDesc(string $array)
+    /**
+     * Sorts the values in an array in ascending order.
+     *
+     * @param  string  $array
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function sortAsc(string $array): SurrealFunction
     {
-        // TODO: Create sort desc function;
+        return $this->sort($array);
     }
 
-    public function union(string $array, string $union)
+    /**
+     * Sorts the values in an array in descending order.
+     *
+     * @param  string  $array
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function sortDesc(string $array): SurrealFunction
     {
-        // TODO: Create union function;
+        return $this->sort($array, false);
+    }
+
+    /**
+     * Returns the unique merged values from two arrays.
+     *
+     * @param  string  $array
+     * @param  string  $union
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function union(string $array, string $union): SurrealFunction
+    {
+        return SurrealFunction::make('array::union($?, $?)', [$array, $union]);
     }
 }

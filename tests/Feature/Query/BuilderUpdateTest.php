@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Query;
 
+use Laragear\Surreal\Functions\SurrealFunction;
 use Tests\AssertsMockConnection;
 use Tests\TestCase;
 
@@ -28,5 +29,14 @@ class BuilderUpdateTest extends TestCase
         $this->expectsMessage('UPDATE "user:1" SET `fred` = $? WHERE `foo` = $?', ['thud', 'bar']);
 
         $this->surreal->id('user:1')->where('foo', 'bar')->update(['fred' => 'thud']);
+    }
+
+    public function test_updates_with_function(): void
+    {
+        $this->expectsMessage('UPDATE "user:1" SET `fred` = foo::bar($?) WHERE `foo` = $?', ['thud','']);
+
+        $this->surreal->id('user:1')->where('foo', 'bar')->update([
+            'fred' => SurrealFunction::make('foo::bar($?)', ['baz'])
+        ]);
     }
 }

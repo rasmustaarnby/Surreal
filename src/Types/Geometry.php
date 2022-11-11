@@ -4,7 +4,6 @@ namespace Laragear\Surreal\Types;
 
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
-use Illuminate\Support\Arr;
 use JsonSerializable;
 use Stringable;
 use function array_map;
@@ -62,6 +61,16 @@ class Geometry implements Stringable, JsonSerializable, Arrayable, Jsonable
      *
      * @return string
      */
+    public function toString()
+    {
+        return $this->__toString();
+    }
+
+    /**
+     * Return a string representation of the object.
+     *
+     * @return string
+     */
     public function __toString(): string
     {
         return $this->toJson();
@@ -99,7 +108,7 @@ class Geometry implements Stringable, JsonSerializable, Arrayable, Jsonable
      */
     public static function polygon(array $points): static
     {
-        return new static(GeometryType::Polygon, [Arr::wrap($points)]);
+        return new static(GeometryType::Polygon, [$points]);
     }
 
     /**
@@ -114,7 +123,7 @@ class Geometry implements Stringable, JsonSerializable, Arrayable, Jsonable
             $points = static::unwrapCoordinates($points);
         }
 
-        return new static(GeometryType::Polygon, $points);
+        return new static(GeometryType::MultiPoint, $points);
     }
 
     /**
@@ -129,9 +138,8 @@ class Geometry implements Stringable, JsonSerializable, Arrayable, Jsonable
             $lines = static::unwrapCoordinates($lines);
         }
 
-        return new static(GeometryType::Polygon, $lines);
+        return new static(GeometryType::MultiLine, $lines);
     }
-
 
     /**
      * Create a GeoJSON multiLine geometry.
@@ -154,9 +162,9 @@ class Geometry implements Stringable, JsonSerializable, Arrayable, Jsonable
     {
         if ($polygons instanceof Arrayable) {
             $polygons = static::unwrapCoordinates($polygons);
-
-            return new static(GeometryType::MultiPolygon, $polygons);
         }
+
+        return new static(GeometryType::MultiPolygon, $polygons);
     }
 
     /**

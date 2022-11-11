@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Query;
 
+use Laragear\Surreal\Functions\SurrealFunction;
 use RuntimeException;
 use Tests\AssertsMockConnection;
 use Tests\TestCase;
@@ -72,9 +73,26 @@ class BuilderInsertTest extends TestCase
     public function test_insert_record_using_subquery(): void
     {
         $this->expectsMessage(
-            'INSERTO INTO `user` (`foo`, `bar`) VALUES ((SELECT * FROM ["Hello", "World"]))'
+            'INSERT INTO `user` (`foo`, `bar`) VALUES ((SELECT * FROM ["Hello", "World"]))'
         );
 
         $this->surreal->table('user')->insertUsing(['foo', 'bar'], 'SELECT * FROM ["Hello", "World"]');
+    }
+
+    public function test_insert_with_function(): void
+    {
+        $this->expectsMessage(
+            'INSERT INTO `user` (`foo`, `bar`, `baz`) VALUES (func::foo(), func::bar($?), func::baz($?, $?))', [
+                '3' => 'qux',
+                '4' => 'qux',
+                '5' => 'fred',
+            ]
+        );
+
+        $this->surreal->table('user')->insert([
+            'foo' => SurrealFunction::make('func::foo()'),
+            'bar' => SurrealFunction::make('func::bar($?)', ['qux']),
+            'baz' => SurrealFunction::make('func::baz($?, $?)', ['qux', 'fred']),
+        ]);
     }
 }

@@ -2,100 +2,231 @@
 
 namespace Laragear\Surreal\Functions;
 
+use RuntimeException;
+
 class TimeFunction
 {
-    public function day()
-    {
+    /**
+     * Group possible values.
+     *
+     * @var string[]
+     */
+    public const GROUP_VALUES = ['year', 'month', 'day', 'hour', 'minute', 'second'];
 
+    /**
+     * Extracts the day as a number from a datetime.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function day(string $value): SurrealFunction
+    {
+        return SurrealFunction::make('time::day($?)', [$value]);
     }
 
-    public function floor()
+    /**
+     * Rounds a datetime down by a specific duration.
+     *
+     * @param  string  $value
+     * @param  string  $duration
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function floor(string $value, string $duration): SurrealFunction
     {
-
+        return SurrealFunction::make('time::floor($?, $?)', [$value, $duration]);
     }
 
-    public function group()
+    /**
+     * Groups a datetime by a particular time interval.
+     *
+     * @param  string  $value
+     * @param  string  $group
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function group(string $value, string $group): SurrealFunction
     {
+        if (!in_array($group, static::GROUP_VALUES, true)) {
+            throw new RuntimeException(
+                'The time group must be of one of ' . implode(', ', static::GROUP_VALUES) . ", [$group] given."
+            );
+        }
 
+        return SurrealFunction::make('time::group($?, $?)', [$value, $group]);
     }
 
-    public function hour()
+    /**
+     * Extracts the hour as a number from a datetime.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function hour(string $value): SurrealFunction
     {
-
+        return SurrealFunction::make('time::hour($?)', [$value]);
     }
 
-    public function mins()
+    /**
+     * Extracts the minutes as a number from a datetime.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function mins(string $value): SurrealFunction
     {
-
+        return SurrealFunction::make('time::mins($?)', [$value]);
     }
 
-    public function minutes()
+    /**
+     * Extracts the minutes as a number from a datetime.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function minutes(string $value)
     {
-        return $this->mins();
+        return $this->mins($value);
     }
 
-    public function month()
+    /**
+     * Extracts the month as a number from a datetime.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function month(string $value): SurrealFunction
     {
-
+        return SurrealFunction::make('time::month($?)', [$value]);
     }
 
-    public function nano()
+    /**
+     * Returns the number of nanoseconds since the UNIX epoch.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function nano(string $value): SurrealFunction
     {
-
+        return SurrealFunction::make('time::nano($?)', [$value]);
     }
 
-    public function now()
+    /**
+     * Returns the current datetime.
+     *
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function now(): SurrealFunction
     {
-
+        return SurrealFunction::make('time::now()');
     }
 
-    public function round()
+    /**
+     * Rounds a datetime up by a specific duration.
+     *
+     * @param  string  $value
+     * @param  string  $duration
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function round(string $value, string $duration): SurrealFunction
     {
-
+        return SurrealFunction::make('time::round($?, $?)', [$value, $duration]);
     }
 
-    public function secs()
+    /**
+     * Extracts the secs as a number from a datetime.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function secs(string $value): SurrealFunction
     {
-
+        return SurrealFunction::make('time::secs($?)', [$value]);
     }
 
-    public function seconds()
+    /**
+     * Extracts the secs as a number from a datetime.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function seconds(string $value)
     {
-        return $this->secs();
+        return $this->secs($value);
     }
 
-    public function unix()
+    /**
+     * Returns the number of seconds since the UNIX epoch.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function unix(string $value): SurrealFunction
     {
-
+        return SurrealFunction::make('time::unix($?)', [$value]);
     }
 
-    public function wday()
+    /**
+     * Extracts the week day as a number from a datetime.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function wday(string $value): SurrealFunction
     {
-
+        return SurrealFunction::make('time::wday($?)', [$value]);
     }
 
-    public function weekDay()
+    /**
+     * Extracts the week day as a number from a datetime.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function weekDay(string $value)
     {
-        return $this->wday();
+        return $this->wday($value);
     }
 
-    public function week()
+    /**
+     * Extracts the week as a number from a datetime.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function week(string $value): SurrealFunction
     {
-
+        return SurrealFunction::make('time::week($?)', [$value]);
     }
 
-    public function yday()
+    /**
+     * Extracts the yday as a number from a datetime.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function yday(string $value): SurrealFunction
     {
-
+        return SurrealFunction::make('time::yday($?)', [$value]);
     }
 
-    public function yearDay()
+    /**
+     * Extracts the yday as a number from a datetime.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function yearDay(string $value)
     {
-        return $this->yday();
+        return $this->yday($value);
     }
 
-    public function year()
+    /**
+     * Extracts the year as a number from a datetime.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function year(string $value): SurrealFunction
     {
-
+        return SurrealFunction::make('time::year($?)', [$value]);
     }
 }

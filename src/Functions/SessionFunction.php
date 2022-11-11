@@ -4,47 +4,92 @@ namespace Laragear\Surreal\Functions;
 
 class SessionFunction
 {
-    public function db()
+    /**
+     * Returns the currently selected database.
+     *
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function db(): SurrealFunction
     {
-
+        return SurrealFunction::make("session::db()");
     }
 
-    public function database()
+    /**
+     * Returns the currently selected database.
+     *
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function database(): SurrealFunction
     {
         return $this->db();
     }
 
-    public function id()
+    /**
+     * Returns the current user's session ID.
+     *
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function id(): SurrealFunction
     {
-
+        return SurrealFunction::make("session::id()");
     }
 
-    public function ip()
+    /**
+     * Returns the current user's session IP address.
+     *
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function ip(): SurrealFunction
     {
-
+        return SurrealFunction::make("session::ip()");
     }
 
-    public function ns()
+    /**
+     * Returns the currently selected namespace.
+     *
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function ns(): SurrealFunction
     {
-
+        return SurrealFunction::make("session::ns()");
     }
 
-    public function namespace()
+    /**
+     * Returns the currently selected namespace.
+     *
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function namespace(): SurrealFunction
     {
         return $this->ns();
     }
 
-    public function origin()
+    /**
+     * Returns the current user's HTTP origin.
+     *
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function origin(): SurrealFunction
     {
-
+        return SurrealFunction::make("session::origin()");
     }
 
-    public function sc()
+    /**
+     * Returns the current user's authentication scope.
+     *
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function sc(): SurrealFunction
     {
-
+        return SurrealFunction::make("session::sc()");
     }
 
-    public function scope()
+    /**
+     * Returns the current user's authentication scope.
+     *
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function scope(): SurrealFunction
     {
         return $this->sc();
     }
