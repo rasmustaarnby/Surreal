@@ -4,69 +4,175 @@ namespace Laragear\Surreal\Functions;
 
 class TypeFunction
 {
-    public function bool()
+    /**
+     * Converts a value into a boolean.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function bool(string $value): SurrealFunction
     {
-
+        return SurrealFunction::make('type::bool($?)', [$value]);
     }
 
-    public function datetime()
+    /**
+     * Converts a value into a datetime.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function datetime(string $value): SurrealFunction
     {
-
+        return SurrealFunction::make('type::datetime($?)', [$value]);
     }
 
-    public function decimal()
+    /**
+     * Converts a value into a decimal.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function decimal(string $value): SurrealFunction
     {
-
+        return SurrealFunction::make('type::decimal($?)', [$value]);
     }
 
-    public function duration()
+    /**
+     * Converts a value into a duration.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function duration(string $value): SurrealFunction
     {
-
+        return SurrealFunction::make('type::duration($?)', [$value]);
     }
 
-    public function float()
+    /**
+     * Converts a value into a floating point number.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function float(string $value): SurrealFunction
     {
-
+        return SurrealFunction::make('type::float($?)', [$value]);
     }
 
-    public function int()
+    /**
+     * Converts a value into an integer.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function int(string $value): SurrealFunction
     {
-
+        return SurrealFunction::make('type::int($?)', [$value]);
     }
 
-    public function number()
+    /**
+     * Converts a value into an integer.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function integer(string $value): SurrealFunction
     {
-
+        return $this->int($value);
     }
 
-    public function point()
+    /**
+     * Converts a value into a number.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function number(string $value): SurrealFunction
     {
-
+        return SurrealFunction::make('type::number($?)', [$value]);
     }
 
-    public function regex()
+    /**
+     * Converts a value into a geometry point.
+     *
+     * @param  string  $value
+     * @param  string|null  $latitude
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function point(string $value, string $latitude = null): SurrealFunction
     {
+        if ($latitude !== null) {
+            return SurrealFunction::make('type::point($?, $?)', [$value, $latitude]);
+        }
 
+        return SurrealFunction::make('type::point($?)', [$value]);
     }
 
-    public function string()
+    /**
+     * Converts a value into a regular expression.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function regex(string $value): SurrealFunction
     {
-
+        return SurrealFunction::make('type::regex($?)', [$value]);
     }
 
-    public function str()
+    /**
+     * Converts a value into a string.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function string(string $value): SurrealFunction
     {
-        return $this->string();
+        return SurrealFunction::make('type::string($?)', [$value]);
     }
 
-    public function table()
+    /**
+     * Converts a value into a string.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function str(string $value): SurrealFunction
     {
-
+        return $this->string($value);
     }
 
-    public function thing()
+    /**
+     * Converts a value into a table.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function table(string $value): SurrealFunction
     {
-
+        return SurrealFunction::make('type::table($?)', [$value]);
     }
 
+    /**
+     * Converts a value into a record pointer.
+     *
+     * @param  string  $key
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function thing(string $key, string $value): SurrealFunction
+    {
+        return SurrealFunction::make('type::thing($?, $?)', [$key, $value]);
+    }
+
+    /**
+     * Converts a value into a record pointer.
+     *
+     * @param  string  $key
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function record(string $key, string $value): SurrealFunction
+    {
+        return $this->thing($key, $value);
+    }
 }

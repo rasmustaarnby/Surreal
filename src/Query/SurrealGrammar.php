@@ -8,6 +8,7 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\Grammars\Grammar;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Str;
+use Laragear\Surreal\Functions\SurrealFunction;
 use RuntimeException;
 use function array_filter;
 use function array_is_list;
@@ -277,6 +278,30 @@ class SurrealGrammar extends Grammar
     }
 
     /**
+     * Wraps a value using the query to put any binding registered.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  mixed  $column
+     * @return string
+     */
+    protected function wrapWithQuery(Builder $query, $column)
+    {
+        if ($column instanceof SurrealFunction) {
+            if (!isset($query->bindings['functions'])) {
+                $query->bindings['functions'] = [];
+            }
+
+            foreach ($column->bindings as $binding) {
+                $query->addBinding($binding, 'functions');
+            }
+
+            return $column->expression();
+        }
+
+        return $this->wrap($column);
+    }
+
+    /**
      * Wrap a value that has an alias.
      *
      * @param  string  $value
@@ -344,6 +369,20 @@ class SurrealGrammar extends Grammar
     }
 
     /**
+     * Convert an array of column names into a delimited string.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  array  $columns
+     * @return string
+     */
+    public function columnizeWithQuery(Builder $query, array $columns)
+    {
+        return implode(', ', array_map(function ($column) use ($query): string {
+            return $this->wrapWithQuery($query, $column);
+        }, $columns));
+    }
+
+    /**
      * ------------------------------------------------------------------------
      * Database Grammar
      * ------------------------------------------------------------------------
@@ -401,7 +440,7 @@ class SurrealGrammar extends Grammar
      */
     protected function compileAggregate(Builder $query, $aggregate)
     {
-        $column = $this->columnize($aggregate['columns']);
+        $column = $this->columnizeWithQuery($query, $aggregate['columns']);
 
         // SurrealDB doesn't support DISTINCT, so warn and offer an alternative.
         if (is_array($query->distinct) || ($query->distinct && $column !== '*')) {
@@ -428,7 +467,7 @@ class SurrealGrammar extends Grammar
             throw new RuntimeException('SurrealDB does not support DISTINCT operations. Use GROUP BY instead.');
         }
 
-        $sql = 'SELECT '.$this->columnize($columns);
+        $sql = 'SELECT '.$this->columnizeWithQuery($query, $columns);
 
         if ($relations = $this->compileGraphEdges($query)) {
             $sql .= ", $relations";
@@ -462,7 +501,7 @@ class SurrealGrammar extends Grammar
     {
         $sql = "RELATE $query->from->$edge->$relatedId";
 
-        if ($content = $this->compileValuesToContent($values)) {
+        if ($content = $this->compileValuesToContent($query, $values)) {
             $sql .= " $content";
         }
 
@@ -476,15 +515,20 @@ class SurrealGrammar extends Grammar
     /**
      * Compiles the values into a content object array.
      *
+     * @param  \Illuminate\Database\Query\Builder  $query
      * @param  array  $values
      * @return string|void
      */
-    protected function compileValuesToContent(array $values)
+    protected function compileValuesToContent(Builder $query, array $values)
     {
         if (!empty($values)) {
-            $attributes = implode(', ', array_map(static function (string|int $key): string {
-                return json_encode($key).' : '.static::BINDING_STRING;
-            }, array_keys($values)));
+            $attributes = collect($values)->map(function (mixed $value, int|string $key) use ($query): string {
+                $binding = $value instanceof SurrealFunction
+                    ? $this->parseSurrealFunction($query, $value)
+                    : static::BINDING_STRING;
+
+                return json_encode($key).' : '. $binding;
+            })->join(', ');
 
             return "CONTENT { $attributes }";
         }
@@ -731,7 +775,7 @@ class SurrealGrammar extends Grammar
      */
     protected function compileGroups(Builder $query, $groups)
     {
-        return 'GROUP BY '.$this->columnize($groups);
+        return 'GROUP BY '.$this->columnizeWithQuery($query, $groups);
     }
 
     /**
@@ -857,11 +901,41 @@ class SurrealGrammar extends Grammar
         // We need to build a list of parameter place-holders of values that are bound
         // to the query. Each insert should have the exact same number of parameter
         // bindings so we will loop through the record and parameterize them all.
-        $parameters = collect($values)->map(function ($record) {
-            return '('.$this->parameterize($record).')';
+        $parameters = collect($values)->map(function ($records) use ($query) {
+            return '('.$this->parameterizeWithQuery($query, $records).')';
         })->implode(', ');
 
         return "INSERT INTO $table ($columns) VALUES $parameters";
+    }
+
+    /**
+     * Create query parameter place-holders for an array.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  array  $values
+     * @return string
+     */
+    public function parameterizeWithQuery(Builder $query, array $values)
+    {
+        return implode(', ', array_map(function ($value) use ($query): string {
+            return $this->parameterWithQuery($query, $value);
+        }, $values));
+    }
+
+    /**
+     * Get the appropriate query parameter place-holder for a value.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  mixed  $value
+     * @return string
+     */
+    public function parameterWithQuery(Builder $query, $value)
+    {
+        if ($value instanceof SurrealFunction) {
+            return $this->parseSurrealFunction($query, $value);
+        }
+
+        return $this->parameter($value);
     }
 
     /**
@@ -877,14 +951,8 @@ class SurrealGrammar extends Grammar
 
         $sql = "CREATE $table";
 
-        if (!empty($values)) {
-            $sql .= ' CONTENT { ';
-
-            foreach ($values as $key => $value) {
-                $sql .= json_encode($key).' : '.static::BINDING_STRING;
-            }
-
-            $sql .= ' }';
+        if ($content = $this->compileValuesToContent($query, $values)) {
+            $sql .= " $content";
         }
 
         if ($flags = $this->compileFlags($query)) {
@@ -892,6 +960,24 @@ class SurrealGrammar extends Grammar
         }
 
         return $sql;
+    }
+
+    /**
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  \Laragear\Surreal\Functions\SurrealFunction  $function
+     * @return string
+     */
+    protected function parseSurrealFunction(Builder $query, SurrealFunction $function): string
+    {
+        if (!isset($query->bindings['functions'])) {
+            $query->bindings['functions'] = [];
+        }
+
+        foreach ($function->bindings as $binding) {
+            $query->addBinding($binding, 'functions');
+        }
+
+        return $function->expression();
     }
 
     /**
@@ -918,7 +1004,7 @@ class SurrealGrammar extends Grammar
      */
     public function compileInsertUsing(Builder $query, array $columns, string $sql)
     {
-        return "INSERTO INTO {$this->wrapTable($query->from)} ({$this->columnize($columns)}) VALUES (($sql))";
+        return "INSERT INTO {$this->wrapTable($query->from)} ({$this->columnizeWithQuery($query, $columns)}) VALUES (($sql))";
     }
 
     /**
@@ -937,6 +1023,20 @@ class SurrealGrammar extends Grammar
         $where = $this->compileWheres($query);
 
         return trim($this->compileUpdateWithoutJoins($query, $table, $columns, $where));
+    }
+
+    /**
+     * Compile the columns for an update statement.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  array  $values
+     * @return string
+     */
+    protected function compileUpdateColumns(Builder $query, array $values)
+    {
+        return collect($values)->map(function ($value, $key) use ($query) {
+            return $this->wrap($key).' = '.$this->parameterWithQuery($query, $value);
+        })->implode(', ');
     }
 
     /**

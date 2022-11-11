@@ -626,7 +626,7 @@ foreach ($popularArticles as $article) {
 > **Warning**
 > The async response from SurrealDB is not resolved until requested, and that includes errors.
 
-### Functions (planned)
+### Functions
 
 Functions are procedures to execute at query time. You can use [any function available](https://surrealdb.com/docs/surrealql/functions) in SurrealDB with the `Func` object in your query.
 
@@ -634,45 +634,74 @@ Functions are procedures to execute at query time. You can use [any function ava
 use Illuminate\Support\Facades\DB;
 use Laragear\Surreal\Query\Func;
 
-$http = Func::http()->head('https://surrealdb.com', [
+$http = Func::http()->get('https://supermarket.com/api', [
     'x-my-header': 'some unique string'
 ]);
 
 DB::table($http)->get();
 ```
 
-You can also use `Func::js()` to execute ES2020 scripts in any part of the query by just setting the function body.
+```sql
+SELECT * FROM http::get('https://supermarket.com/api', {
+    'x-my-header': 'some unique string'
+})
+```
+
+Functions work only at root level. When using functions on nested items, like an array or an object, these will be cast into raw SurrealSQL.
+
+```php
+use Illuminate\Support\Facades\DB;
+use Laragear\Surreal\Query\Func;
+
+DB::id('user:john')->create([
+    'name' => 'john',
+    'email' => 'john@app.com',
+    'is_admin' => Func::str()->endsWith('email', '@app.com'),
+    'favorites' => [
+        'colors' => Func::rand()->enum('blue', 'red'),
+        'numbers' => Func::rand()->enum(3, 5, 7)
+    ]
+]);
+```
+
+```sql
+CREATE user:john CONTENT {
+    'name' => 'john',
+    'email' => 'john@app.com',
+    'is_admin' => string::endsWith("email", "@app.com"),
+    'favorites' => [
+        'colors' => rand::enum(blue, red),
+        'numbers' => rand::enum(3, 5, 7)
+    ]
+}
+```
+
+> **Danger**
+> Functions, by all means, are considered **raw expressions**. Do not use them with user generated content, as you may risk your application to SQL Injection attacks.
+
+### Javascript Functions
+
+You can also use `Func::js()` to execute ES2020-compliant javascript in any part of the query by just setting the function body.
 
 ```php
 use Illuminate\Support\Facades\DB;
 use Laragear\Surreal\Query\Func;
 
 DB::table('something')->insert([
-    'scores' => Func::js('[1,2,3].map(v => v * 10)')
+    'scores' => Func::js('return [1,2,3].map(v => v * 10)')
 ]);
-
-// INSERT something CONTENT {
-//     "scores": function () { return [1,2,3].map(v => v * 10) }
-// }
 ```
 
-To let a function accept parameters, use `withArgs()` with the name of the arguments. Arguments can be accessed using `{$name}` inside the function, which will be automatically mapped into the function at query-time.
-
-```php
-use Illuminate\Support\Facades\DB;
-use Laragear\Surreal\Query\Func;
-
-DB::table('person')->insert([
-    'scores' => Func::js('[1,2,3].map(v => v * {$number})')->withArgs('number')
-]);
-
-// INSERT something CONTENT {
-//     "scores": function ($number) { [1,2,3].map(v => v * ${arguments[0]}) }
-// }
+```sql
+INSERT something CONTENT {
+    scores: function () { 
+        return [1,2,3].map(v => v * 10)
+    }
+}
 ```
 
 > **Note**
-> While script functions are useful features, try not to abuse them because they can be tricky to debug. You're always a browser away to test a piece of javascript.
+> Script functions are useful features, but try not to abuse them because they can be tricky to debug. You're always a browser away to test a script.
 
 ### Multiple Queries (planned)
 

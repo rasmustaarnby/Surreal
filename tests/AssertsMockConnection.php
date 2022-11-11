@@ -37,6 +37,8 @@ trait AssertsMockConnection
     protected function expectsMessage(string $statement, array $bindings = [], $return = new Collection())
     {
         $this->client->expects('send')->withArgs(function (ClientMessage $query) use ($statement, $bindings): bool {
+            \dump([$query->params[0]->statement, $query->params[1]->parameters]);
+
             static::assertSame('query', $query->method);
             static::assertSame($statement, $query->params[0]->statement);
             static::assertSame($bindings, $query->params[1]->parameters);

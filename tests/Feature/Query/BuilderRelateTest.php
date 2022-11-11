@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Query;
 
+use Laragear\Surreal\Functions\SurrealFunction;
 use Tests\AssertsMockConnection;
 use Tests\TestCase;
 
@@ -34,5 +35,14 @@ class BuilderRelateTest extends TestCase
 
         $this->surreal->id('user:1')->parallel()->timeout(5)->returnNone()->relateTo('user:2')->through('knows', ['foo' => 'bar']);
         $this->surreal->id('user:3')->parallel()->timeout(5)->returnNone()->relateTo('user:4')->knows(['foo' => 'bar']);
+    }
+
+    public function test_relates_with_function(): void
+    {
+        $this->expectsMessage('RELATE user:1->knows->user:2 CONTENT { "foo" : bar::quz($?) }', ['qux']);
+
+        $this->surreal->id('user:1')->relateTo('user:2')->through('knows', [
+            'foo' => SurrealFunction::make('bar::quz($?)', ['qux'])
+        ]);
     }
 }

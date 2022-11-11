@@ -4,36 +4,91 @@ namespace Laragear\Surreal\Functions;
 
 class ParseFunction
 {
-    public function emailDomain()
+    /**
+     * Parses and returns an email domain from an email address.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function emailDomain(string $value): SurrealFunction
     {
-
+        return SurrealFunction::make('parse::email::domain($?)', [$value]);
     }
-    public function emailUser()
-    {
 
+    /**
+     * Parses and returns an email username from an email address.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function emailUser(string $value): SurrealFunction
+    {
+        return SurrealFunction::make('parse::email::user($?)', [$value]);
     }
-    public function urlDomain()
-    {
 
+    /**
+     * Parses and returns the domain from a URL.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function urlDomain(string $value): SurrealFunction
+    {
+        return SurrealFunction::make('parse::url::domain($?)', [$value]);
     }
-    public function urlFragment()
-    {
 
+    /**
+     * Parses and returns the fragment from a URL.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function urlFragment(string $value): SurrealFunction
+    {
+        return SurrealFunction::make('parse::url::fragment($?)', [$value]);
     }
-    public function urlHost()
-    {
 
+    /**
+     * Parses and returns the hostname from a URL.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function urlHost(string $value): SurrealFunction
+    {
+        return SurrealFunction::make('parse::url::host($?)', [$value]);
     }
-    public function urlPath()
-    {
 
+    /**
+     * Parses and returns the path from a URL.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function urlPath(string $value): SurrealFunction
+    {
+        return SurrealFunction::make('parse::url::path($?)', [$value]);
     }
-    public function urlPort()
-    {
 
+    /**
+     * Parses and returns the port number from a URL.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function urlPort(string $value): SurrealFunction
+    {
+        return SurrealFunction::make('parse::url::port($?)', [$value]);
     }
-    public function urlQuery()
-    {
 
+    /**
+     * Parses and returns the query string from a URL.
+     *
+     * @param  string  $value
+     * @return \Laragear\Surreal\Functions\SurrealFunction
+     */
+    public function urlQuery(string $value): SurrealFunction
+    {
+        return SurrealFunction::make('parse::url::query($?)', [$value]);
     }
 }
