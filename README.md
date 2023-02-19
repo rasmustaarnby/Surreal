@@ -51,7 +51,7 @@ You may set your DB connection in Laravel by creating a new database entry in yo
     'url' => env('DATABASE_URL', 'ws://localhost:8000/rpc'),
     'ns' => env('DB_NAMESPACE', 'forge'),
     'db' => env('DB_DATABASE', 'forge'),
-    'user' => env('DB_USERNAME', 'forge'),
+    'username' => env('DB_USERNAME', 'forge'),
     'password' => env('DB_PASSWORD', 'forge'),
 ],
 ```
@@ -64,6 +64,17 @@ As you can guess, Laragear Surreal uses the [JSON-RPC](https://www.jsonrpc.org/)
 > ```shell
 > surreal start --log debug --user forge --pass forge
 > ```
+
+
+Add SurrealServiceProvider to providers array in `config\app.php` 
+
+```php
+'providers' => [
+    ...
+    Laragear\Surreal\SurrealServiceProvider::class,
+    ...
+]
+```
 
 ### WebSockets
 
