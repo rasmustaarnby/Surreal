@@ -17,7 +17,7 @@ class QueryException extends BaseQueryException
      * @param  \Throwable  $previous
      * @return string
      */
-    protected function formatMessage($sql, $bindings, Throwable $previous)
+    protected function formatMessage($connectionName, $sql, $bindings, Throwable $previous)
     {
         foreach ($bindings as $key => $binding) {
             // If a binding is an array or an object, we will try to encode it to a string.
