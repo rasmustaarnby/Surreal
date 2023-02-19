@@ -362,7 +362,7 @@ class SurrealConnection extends Connection
      *
      * @return void
      */
-    protected function reconnectIfMissingConnection()
+    public function reconnectIfMissingConnection()
     {
         if (! $this->client->isRunning()) {
             $this->reconnect();
