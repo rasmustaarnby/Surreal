@@ -353,7 +353,7 @@ class SurrealConnection extends Connection
         try {
             return $callback($query, $bindings);
         } catch (Exception $e) {
-            throw new Exceptions\QueryException($query, $this->prepareBindings($bindings), $e);
+            throw new Exceptions\QueryException($this->getName(), $query, $this->prepareBindings($bindings), $e);
         }
     }
 
